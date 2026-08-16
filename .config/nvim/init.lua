@@ -68,8 +68,12 @@ require("lazy").setup({
   end,
 },
 
+{
+    "williamboman/mason.nvim",
+    opts = {},
+},
   -- Menú flotante al pulsar Espacio (Which-Key)
-  {
+{
     "folke/which-key.nvim",
     event = "VeryLazy",
     init = function()
