@@ -7,19 +7,13 @@ vim.g.maplocalleader = " "
 vim.opt.number = true         -- Números de línea
 vim.opt.relativenumber = true -- Números relativos
 vim.opt.shiftwidth = 4        -- Tabulación de 4 espacios
-vim.opt.expandtab = true      -- Convertir tabs a espacios
+vim.opt.expandtab = false      -- Convertir tabs a espacios
 vim.opt.clipboard = "unnamedplus" -- Sincronizar portapapeles del sistema
 vim.opt.splitright = true     -- Al dividir pantalla verticalmente, abrir a la derecha
 vim.opt.splitbelow = true     -- Al dividir horizontalmente, abrir abajo
 
--- Hacer que ESC limpie los resaltados de búsquedas anteriores
+-- Limpiar resaltado con ESC
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Limpiar resaltados" })
-
--- Navegación rápida entre pantallas divididas (Ctrl + h/j/k/l)
-vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Mover a la ventana izquierda" })
-vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Mover a la ventana inferior" })
-vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Mover a la ventana superior" })
-vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Mover a la ventana derecha" })
 
 -- =========================================================================
 -- 2. INSTALACIÓN DE LAZY.NVIM
@@ -32,58 +26,101 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- =========================================================================
--- 3. PLUGINS
+-- 3. DECLARACIÓN DE PLUGINS
 -- =========================================================================
 require("lazy").setup({
 
   -- Tema Visual (TokyoNight)
-  {
-    "folke/tokyonight.nvim",
-    lazy = false,
-    priority = 1000,
-    config = function()
-      vim.cmd([[colorscheme tokyonight-moon]])
-    end,
-  },
+{
+  "folke/tokyonight.nvim",
+  lazy = false,
+  priority = 1000,
+  config = function()
+    require("tokyonight").setup({
+      style = "night", -- Opciones: "storm", "moon", "night", "day"
+      transparent = false,
+      styles = {
+        keywords = { italic = true },
+        functions = { bold = true },
+        variables = {},
+      },
+    })
+    vim.cmd([[colorscheme tokyonight-night]])
+  end,
+},
 
-  -- MENÚ FLOTANTE AL PULSAR ESPACIO (Which-Key)
+-- =========================================================================
+-- TREESITTER: SINTAXIS Y COLOREADO AVANZADO
+-- =========================================================================
+{
+  "nvim-treesitter/nvim-treesitter",
+  build = ":TSUpdate",
+  config = function()
+    require("nvim-treesitter.configs").setup({
+      ensure_installed = { "c", "cpp", "lua", "python", "bash", "cmake" },
+      auto_install = true,
+      highlight = {
+        enable = true, -- ¡Activa el coloreado inteligente!
+        additional_vim_regex_highlighting = false,
+      },
+      indent = { enable = true },
+    })
+  end,
+},
+
+  -- Menú flotante al pulsar Espacio (Which-Key)
   {
     "folke/which-key.nvim",
     event = "VeryLazy",
     init = function()
       vim.o.timeout = true
-      vim.o.timeoutlen = 300 -- Muestra el menú tras 300ms de presionar Espacio
+      vim.o.timeoutlen = 300
     end,
     opts = {},
   },
 
-  -- EXPLORADOR DE ARCHIVOS LATERAL (Neo-Tree)
+  -- Explorador de archivos lateral (Neo-Tree)
   {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
     dependencies = {
       "nvim-lua/plenary.nvim",
-      "nvim-tree/nvim-web-devicons", -- Iconos bonitos
+      "nvim-tree/nvim-web-devicons",
       "MunifTanjim/nui.nvim",
     },
     config = function()
-      -- Espacio + e: Abrir / Cerrar el árbol de archivos
       vim.keymap.set("n", "<leader>e", "<cmd>Neotree toggle<cr>", { desc = "Explorador de Archivos" })
     end,
   },
 
-  -- BUSCADOR Y NAVEGACIÓN (Telescope)
+  -- Buscador y navegación (Telescope)
   {
     "nvim-telescope/telescope.nvim",
     tag = "0.1.8",
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       local builtin = require("telescope.builtin")
-
       vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Buscar Archivos" })
       vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Buscar Texto Global" })
       vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Ver Archivos Abiertos" })
     end,
+  },
+
+  -- Navegación transparente entre Neovim y Tmux
+  {
+    "christoomey/vim-tmux-navigator",
+    cmd = {
+      "TmuxNavigateLeft",
+      "TmuxNavigateDown",
+      "TmuxNavigateUp",
+      "TmuxNavigateRight",
+    },
+    keys = {
+      { "<c-h>", "<cmd><C-U>TmuxNavigateLeft<cr>" },
+      { "<c-j>", "<cmd><C-U>TmuxNavigateDown<cr>" },
+      { "<c-k>", "<cmd><C-U>TmuxNavigateUp<cr>" },
+      { "<c-l>", "<cmd><C-U>TmuxNavigateRight<cr>" },
+    },
   },
 
   -- Treesitter (Sintaxis y Colores)
@@ -147,24 +184,22 @@ require("lazy").setup({
 })
 
 -- =========================================================================
--- 4. ATAJOS DE TECLADO GLOBALES Y LSP
+-- 4. ATAJOS DE TECLADO Y LSP
 -- =========================================================================
--- Atajos para dividir pantalla cómodamente
 vim.keymap.set("n", "<leader>sv", "<cmd>vsplit<cr>", { desc = "Dividir Pantalla Vertical" })
 vim.keymap.set("n", "<leader>sh", "<cmd>split<cr>", { desc = "Dividir Pantalla Horizontal" })
 
--- Atajos del Servidor de Lenguaje (LSP)
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
   callback = function(ev)
-    local opts = { buffer = ev.buf }
     local builtin = require("telescope.builtin")
-
-    -- Navegación e inteligencia de código con Telescope
     vim.keymap.set("n", "gd", builtin.lsp_definitions, { buffer = ev.buf, desc = "Ir a Definición" })
     vim.keymap.set("n", "gr", builtin.lsp_references, { buffer = ev.buf, desc = "Ver Referencias" })
     vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = ev.buf, desc = "Documentación" })
     vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { buffer = ev.buf, desc = "Renombrar Variable" })
     vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { buffer = ev.buf, desc = "Acciones de Código" })
+    vim.keymap.set("n", "<S-l>", "<cmd>bnext<cr>", { desc = "Siguiente búfer" })
+    vim.keymap.set("n", "<S-h>", "<cmd>bprevious<cr>", { desc = "Búfer anterior" })
+    vim.keymap.set("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Cerrar búfer actual" })
   end,
 })
