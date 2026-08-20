@@ -1,19 +1,25 @@
 -- =========================================================================
 -- 1. CONFIGURACIÓN BÁSICA Y TECLA LÍDER
 -- =========================================================================
-vim.g.mapleader = " "         -- Barra espaciadora como tecla líder
+vim.g.mapleader = " "         -- Espacio como tecla líder
 vim.g.maplocalleader = " "
 
 vim.opt.number = true         -- Números de línea
 vim.opt.relativenumber = true -- Números relativos
 vim.opt.shiftwidth = 4        -- Tabulación de 4 espacios
-vim.opt.expandtab = false      -- Convertir tabs a espacios
-vim.opt.clipboard = "unnamedplus" -- Sincronizar portapapeles del sistema
-vim.opt.splitright = true     -- Al dividir pantalla verticalmente, abrir a la derecha
-vim.opt.splitbelow = true     -- Al dividir horizontalmente, abrir abajo
+vim.opt.expandtab = false     -- Usar tabs
+vim.opt.clipboard = "unnamedplus" -- Portapapeles del sistema
+vim.opt.splitright = true     -- Divisiones a la derecha
+vim.opt.splitbelow = true     -- Divisiones abajo
+vim.opt.scrolloff = 8         -- Mantiene 8 líneas de margen al bajar
+vim.opt.updatetime = 50       -- Respuesta más rápida
 
--- Limpiar resaltado con ESC
-vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Limpiar resaltados" })
+-- Parche Neovim 0.10+ para Telescope
+if vim.treesitter and vim.treesitter.language and vim.treesitter.language.ft_to_lang == nil then
+  vim.treesitter.language.ft_to_lang = function(ft)
+    return vim.treesitter.language.get_lang(ft) or ft
+  end
+end
 
 -- =========================================================================
 -- 2. INSTALACIÓN DE LAZY.NVIM
@@ -30,50 +36,48 @@ vim.opt.rtp:prepend(lazypath)
 -- =========================================================================
 require("lazy").setup({
 
-  -- Tema Visual (TokyoNight)
-{
-  "folke/tokyonight.nvim",
-  lazy = false,
-  priority = 1000,
-  config = function()
-    require("tokyonight").setup({
-      style = "night", -- Opciones: "storm", "moon", "night", "day"
-      transparent = false,
-      styles = {
-        keywords = { italic = true },
-        functions = { bold = true },
-        variables = {},
-      },
-    })
-    vim.cmd([[colorscheme tokyonight-night]])
-  end,
-},
+  -- Tema Visual
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+    config = function()
+      require("tokyonight").setup({ style = "night" })
+      vim.cmd([[colorscheme tokyonight-night]])
+    end,
+  },
 
--- =========================================================================
--- TREESITTER: SINTAXIS Y COLOREADO AVANZADO
--- =========================================================================
-{
-  "nvim-treesitter/nvim-treesitter",
-  build = ":TSUpdate",
-  config = function()
-    require("nvim-treesitter.configs").setup({
-      ensure_installed = { "c", "cpp", "lua", "python", "bash", "cmake" },
-      auto_install = true,
-      highlight = {
-        enable = true, -- ¡Activa el coloreado inteligente!
-        additional_vim_regex_highlighting = false,
-      },
-      indent = { enable = true },
-    })
-  end,
-},
-
-{
-    "williamboman/mason.nvim",
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
     opts = {},
-},
-  -- Menú flotante al pulsar Espacio (Which-Key)
-{
+  },
+
+  -- Treesitter (Resaltado) - CORREGIDO
+    {
+      'nvim-treesitter/nvim-treesitter',
+      branch = 'main',
+      build = ':TSUpdate',
+      config = function()
+    local ts = require('nvim-treesitter')
+    ts.setup()
+
+    -- Install language parsers
+     ts.install({ 'c', 'cpp', 'python', 'rust', 'lua', 'markdown', 'markdown_inline' })
+
+     -- Enable syntax highlighting on file load
+      vim.api.nvim_create_autocmd('FileType', {
+          callback = function()
+        pcall(vim.treesitter.start)
+          end,
+    })
+      end,
+    },
+
+  { "williamboman/mason.nvim", opts = {} },
+
+  -- Menú Flotante (Which-Key)
+  {
     "folke/which-key.nvim",
     event = "VeryLazy",
     init = function()
@@ -83,42 +87,103 @@ require("lazy").setup({
     opts = {},
   },
 
-  -- Explorador de archivos lateral (Neo-Tree)
+  -- Barra de Pestañas (Bufferline)
+  {
+    "akinsho/bufferline.nvim",
+    version = "*",
+    dependencies = "nvim-tree/nvim-web-devicons",
+    opts = {
+      options = {
+        diagnostics = "nvim_lsp",
+        separator_style = "slant",
+      },
+    },
+  },
+
+  -- Navegación ultra-rápida en pantalla (Flash)
+  {
+    "folke/flash.nvim",
+    event = "VeryLazy",
+    opts = {},
+    keys = {
+      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Salto rápido (Flash)" },
+    },
+  },
+
+  -- Fijar archivos frecuentes (Harpoon)
+  {
+    "ThePrimeagen/harpoon",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      local mark = require("harpoon.mark")
+      local ui = require("harpoon.ui")
+      vim.keymap.set("n", "<leader>ha", mark.add_file, { desc = "Harpoon: Marcar archivo" })
+      vim.keymap.set("n", "<leader>hh", ui.toggle_quick_menu, { desc = "Harpoon: Ver marcados" })
+      
+      -- Se agrupan visualmente para que Which-Key no sature la pantalla
+      vim.keymap.set("n", "<leader>1", function() ui.nav_file(1) end, { desc = "Harpoon (1-4)" })
+      vim.keymap.set("n", "<leader>2", function() ui.nav_file(2) end, { desc = "which_key_ignore" })
+      vim.keymap.set("n", "<leader>3", function() ui.nav_file(3) end, { desc = "which_key_ignore" })
+      vim.keymap.set("n", "<leader>4", function() ui.nav_file(4) end, { desc = "which_key_ignore" })
+    end,
+  },
+
+  -- Gestor de Proyectos y Directorios (Project.nvim)
+  {
+    "ahmedkhalf/project.nvim",
+    config = function()
+      require("project_nvim").setup({
+        detection_methods = { "pattern" },
+        patterns = { ".git", "Makefile", "package.json" },
+      })
+    end,
+  },
+
+  -- Git Integración (Gitsigns)
+  {
+    "lewis6991/gitsigns.nvim",
+    config = function()
+      require("gitsigns").setup()
+      vim.keymap.set("n", "<leader>gp", "<cmd>Gitsigns preview_hunk<CR>", { desc = "Git: Ver cambios" })
+      vim.keymap.set("n", "<leader>gr", "<cmd>Gitsigns reset_hunk<CR>", { desc = "Git: Deshacer bloque" })
+      vim.keymap.set("n", "]g", "<cmd>Gitsigns next_hunk<CR>", { desc = "Git: Siguiente cambio" })
+      vim.keymap.set("n", "[g", "<cmd>Gitsigns prev_hunk<CR>", { desc = "Git: Cambio anterior" })
+    end,
+  },
+
+  -- Explorador Neo-Tree
   {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "nvim-tree/nvim-web-devicons",
-      "MunifTanjim/nui.nvim",
-    },
+    dependencies = { "nvim-lua/plenary.nvim", "nvim-tree/nvim-web-devicons", "MunifTanjim/nui.nvim" },
     config = function()
       vim.keymap.set("n", "<leader>e", "<cmd>Neotree toggle<cr>", { desc = "Explorador de Archivos" })
     end,
   },
 
-  -- Buscador y navegación (Telescope)
+  -- Buscador (Telescope + Integración de Proyectos)
   {
     "nvim-telescope/telescope.nvim",
-    tag = "0.1.8",
-    dependencies = { "nvim-lua/plenary.nvim" },
+    branch = "0.1.x",
+    dependencies = { "nvim-lua/plenary.nvim", "ahmedkhalf/project.nvim" },
     config = function()
+      local telescope = require("telescope")
+      telescope.setup({
+        defaults = { preview = { treesitter = false } },
+      })
+      telescope.load_extension("projects")
       local builtin = require("telescope.builtin")
       vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Buscar Archivos" })
       vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Buscar Texto Global" })
       vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Ver Archivos Abiertos" })
+      vim.keymap.set("n", "<leader>fp", "<cmd>Telescope projects<cr>", { desc = "Cambiar de Proyecto/Directorio" })
     end,
   },
 
-  -- Navegación transparente entre Neovim y Tmux
+  -- Navegación con Tmux
   {
     "christoomey/vim-tmux-navigator",
-    cmd = {
-      "TmuxNavigateLeft",
-      "TmuxNavigateDown",
-      "TmuxNavigateUp",
-      "TmuxNavigateRight",
-    },
+    cmd = { "TmuxNavigateLeft", "TmuxNavigateDown", "TmuxNavigateUp", "TmuxNavigateRight" },
     keys = {
       { "<c-h>", "<cmd><C-U>TmuxNavigateLeft<cr>" },
       { "<c-j>", "<cmd><C-U>TmuxNavigateDown<cr>" },
@@ -127,72 +192,57 @@ require("lazy").setup({
     },
   },
 
-  -- Treesitter (Sintaxis y Colores)
-  {
-    "nvim-treesitter/nvim-treesitter",
-    build = ":TSUpdate",
-    opts = {
-      ensure_installed = { "rust", "c", "cpp", "python", "lua" },
-      highlight = { enable = true },
-    },
-    config = function(_, opts)
-      local status, treesitter = pcall(require, "nvim-treesitter.configs")
-      if status then
-        treesitter.setup(opts)
-      end
-    end,
-  },
-
-  -- Servidores LSP (Neovim 0.11+)
+  -- LSP (Servidores de lenguaje)
   {
     "neovim/nvim-lspconfig",
     config = function()
-      vim.lsp.config("clangd", {
-        cmd = {
-          "clangd",
-          "--background-index",
-          "--clang-tidy",
-          "--header-insertion=iwyu",
-          "--completion-style=detailed",
-          "--fallback-style=llvm",
-        },
-      })
-
-      vim.lsp.config("pyright", {
-        settings = {
-          python = {
-            analysis = {
-              autoSearchPaths = true,
-              useLibraryCodeForTypes = true,
-              diagnosticMode = "workspace",
-            },
-          },
-        },
-      })
-
+      vim.lsp.config("clangd", { cmd = { "clangd", "--background-index" } })
+      vim.lsp.config("pyright", {})
       vim.lsp.config("ruff", {})
-      vim.lsp.config("lua_ls", {
-        settings = { Lua = { diagnostics = { globals = { "vim" } } } },
-      })
-
+      vim.lsp.config("lua_ls", { settings = { Lua = { diagnostics = { globals = { "vim" } } } } })
       vim.lsp.enable({ "clangd", "pyright", "ruff", "lua_ls" })
     end,
   },
 
-  -- Rustaceanvim (Rust)
-  {
-    "mrcjkb/rustaceanvim",
-    version = "^4",
-    ft = { "rust" },
-  },
+  { "mrcjkb/rustaceanvim", version = "^4", ft = { "rust" } },
 })
 
 -- =========================================================================
--- 4. ATAJOS DE TECLADO Y LSP
+-- 4. ATAJOS PRO PARA VELOCIDAD EXTREMA
 -- =========================================================================
+
+-- Guardar y Salir
+vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc = "Guardar archivo" })
+vim.keymap.set("n", "<leader>q", "<cmd>q<CR>", { desc = "Cerrar ventana" })
+vim.keymap.set("n", "<C-s>", "<cmd>w<CR>", { desc = "Guardar rápido" })
+vim.keymap.set("i", "<C-s>", "<Esc><cmd>w<CR>a", { desc = "Guardar en modo insertar" })
+
+-- Limpiar resaltado
+vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Limpiar resaltados" })
+
+-- Mover bloques de código seleccionados (Modo Visual)
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Mover línea abajo" })
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "Mover línea arriba" })
+
+-- Mantener el cursor centrado al navegar páginas y búsquedas
+vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Bajar media página (Centrado)" })
+vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Subir media página (Centrado)" })
+vim.keymap.set("n", "n", "nzzzv", { desc = "Siguiente búsqueda (Centrado)" })
+vim.keymap.set("n", "N", "Nzzzv", { desc = "Anterior búsqueda (Centrado)" })
+
+-- Pegar sobre texto sin perder el texto copiado previamente
+vim.keymap.set("x", "<leader>p", [["_dP]], { desc = "Pegar sin sobrescribir portapapeles" })
+
+-- Navegación rápida de búferes
+vim.keymap.set("n", "<S-l>", "<cmd>bnext<cr>", { desc = "Siguiente pestaña" })
+vim.keymap.set("n", "<S-h>", "<cmd>bprevious<cr>", { desc = "Pestaña anterior" })
+vim.keymap.set("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Cerrar pestaña actual" })
+
+-- Gestión de ventanas
 vim.keymap.set("n", "<leader>sv", "<cmd>vsplit<cr>", { desc = "Dividir Pantalla Vertical" })
 vim.keymap.set("n", "<leader>sh", "<cmd>split<cr>", { desc = "Dividir Pantalla Horizontal" })
 
+-- LSP
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
   callback = function(ev)
@@ -202,8 +252,5 @@ vim.api.nvim_create_autocmd("LspAttach", {
     vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = ev.buf, desc = "Documentación" })
     vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { buffer = ev.buf, desc = "Renombrar Variable" })
     vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { buffer = ev.buf, desc = "Acciones de Código" })
-    vim.keymap.set("n", "<S-l>", "<cmd>bnext<cr>", { desc = "Siguiente búfer" })
-    vim.keymap.set("n", "<S-h>", "<cmd>bprevious<cr>", { desc = "Búfer anterior" })
-    vim.keymap.set("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Cerrar búfer actual" })
   end,
 })
