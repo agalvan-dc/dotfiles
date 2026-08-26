@@ -252,5 +252,20 @@ vim.api.nvim_create_autocmd("LspAttach", {
     vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = ev.buf, desc = "Documentación" })
     vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { buffer = ev.buf, desc = "Renombrar Variable" })
     vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { buffer = ev.buf, desc = "Acciones de Código" })
-  end,
+
+-- Salir de la terminal pulsando ESC dos veces seguidas
+vim.keymap.set('t', '<Esc><Esc>', [[<C-\><C-n>]], { desc = 'Salir de modo terminal' })
+
+-- Opción alternativa: Usar Ctrl + o para salir rápido
+vim.keymap.set('t', '<C-o>', [[<C-\><C-n>]], { desc = 'Salir de modo terminal' })
+
+-- Navegar a otras ventanas/splits directamente desde la terminal (sin necesidad de salir a modo normal antes)
+vim.keymap.set('t', '<C-h>', [[<C-\><C-n><C-w>h]], { desc = 'Mover a la ventana izquierda' })
+vim.keymap.set('t', '<C-j>', [[<C-\><C-n><C-w>j]], { desc = 'Mover a la ventana abajo' })
+vim.keymap.set('t', '<C-k>', [[<C-\><C-n><C-w>k]], { desc = 'Mover a la ventana arriba' })
+vim.keymap.set('t', '<C-l>', [[<C-\><C-n><C-w>l]], { desc = 'Mover a la ventana derecha' })
+
+-- Abrir Lazydocker en una terminal dentro de Neovim
+vim.keymap.set("n", "<leader>ld", "<cmd>term lazydocker<CR>", { desc = "Abrir Lazydocker (Gestor Docker)" })
+end,
 })

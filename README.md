@@ -50,6 +50,14 @@ ln -s ~/.dotfiles/nvim ~/.config/nvim
 
 ---
 
+### External Integrations (Lazydocker)
+While not directly installed via Neovim's package manager, this configuration is optimized to work seamlessly with **Lazydocker**, a terminal UI for both Docker and Docker Compose. 
+
+* **Prerequisite:** You must install Lazydocker on your host operating system (e.g., via `curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash` or their official install script).
+* **Usage in Neovim:** Press `<leader>ld` to instantly open a Neovim terminal window running Lazydocker. This allows you to monitor container logs, restart services, and prune images without ever leaving your editor.
+
+---
+
 ## Neovim Configuration (Detailed)
 
 ### Plugin Architecture & Usage
