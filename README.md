@@ -47,79 +47,49 @@ Your setup uses `lazy.nvim` as the package manager, which automatically bootstra
 | Plugin | Purpose & Functionality | Usage / Triggers |
 | --- | --- | --- |
 | **Tokyonight** | Sets the core visual colorscheme to "night".
-
- | Loads automatically on startup.
-
+| Loads automatically on startup.
  |
 | **Render Markdown** | Enhances markdown files with visual rendering.
-
  | Activates automatically in `.md` files.
-
  |
 | **Treesitter** | Provides advanced syntax highlighting via parsers.
-
  | Auto-highlights C, C++, Python, Rust, Lua, and Markdown.
-
  |
 | **Mason** | Package manager for LSPs, linters, and formatters.
-
  | Type `:Mason` to open the GUI and install tools.
-
  |
 | **Which-Key** | Displays a popup cheat sheet of available keybinds.
-
  | Triggers automatically after holding any key for 300ms.
-
  |
 | **Bufferline** | Creates a top tab bar with slanted separators.
-
  | Auto-displays open buffers and LSP diagnostics.
-
  |
 | **Flash** | Enables ultra-fast screen navigation.
-
  | Press `s` (Normal/Visual), type the highlighted letters to jump.
-
  |
 | **Harpoon** | Pins frequently used files for instant navigation.
-
  | `<leader>ha` (pin), `<leader>hh` (menu), `<leader>1-4` (jump).
-
  |
 | **Project.nvim** | Auto-detects project root directories.
-
  | Triggers when `.git`, `Makefile`, or `package.json` are found.
-
  |
 | **Gitsigns** | Integrates Git status into the gutter.
-
  | `<leader>gp` (preview), `<leader>gr` (reset hunk), `]g`/`[g` (navigate).
-
  |
 | **Neo-tree** | Sidebar file explorer.
-
  | Toggle open/closed using `<leader>e`.
-
  |
 | **Telescope** | Fuzzy finder for files, text, and projects.
-
  | `<leader>ff` (files), `<leader>fg` (text), `<leader>fb` (buffers), `<leader>fp` (projects).
-
  |
 | **Tmux Navigator** | Allows seamless pane switching between Vim and Tmux.
-
  | Use `<C-h>`, `<C-j>`, `<C-k>`, `<C-l>` to move directionally.
-
  |
 | **Lspconfig** | Configures Language Servers (clangd, pyright, ruff, lua_ls).
-
  | Auto-attaches to provide code intelligence.
-
  |
 | **Rustaceanvim** | Specialized Rust development support.
-
  | Auto-loads exclusively for Rust filetypes.
-
  |
 
 ## Comprehensive Keymap Reference
@@ -129,43 +99,30 @@ Config uses the `Space` bar as both the `<leader>` and `<localleader>` key.
 | Shortcut | Mode | Action & Description |
 | --- | --- | --- |
 | `<leader>w` | `<C-s>` | Normal/Insert | Saves the current file.
-
  |
 | `<leader>q` | Normal | Closes the current window.
-
  |
 | `<Esc>` | Normal | Clears active search highlighting.
-
  |
 | `J` | `K` | Visual | Moves the highlighted block of code down or up respectively.
-
  |
 | `<C-d>` | `<C-u>` | Normal | Scrolls a half-page down/up while keeping the cursor centered.
-
  |
 | `n` | `N` | Normal | Jumps to the next/previous search result, keeping it centered.
-
  |
 | `<leader>p` | Visual | Pastes over highlighted text without replacing your clipboard.
-
  |
 | `<S-l>` | `<S-h>` | Normal | Cycles to the next or previous buffer tab.
-
  |
 | `<leader>bd` | Normal | Closes the currently active buffer tab.
-
  |
 | `<leader>sv` | `<leader>sh` | Normal | Splits the screen vertically or horizontally.
-
  |
 | `gd` | `gr` | Normal | Jumps to LSP definition or shows variable references.
-
  |
 | `K` | Normal | Displays LSP hover documentation.
-
  |
 | `<leader>rn` | `<leader>ca` | Normal | Renames a variable project-wide or opens LSP code actions.
-
  |
 
  ## Automated Installation Script
