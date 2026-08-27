@@ -251,18 +251,6 @@ vim.keymap.set("n", "<leader>lg", "<cmd>term lazygit<CR>", { desc = "Abrir Lazyg
 -- Mostrar diagnósticos (errores/warnings del LSP) en una ventana flotante
 vim.keymap.set("n", "<leader>n", vim.diagnostic.open_float, { desc = "Mostrar diagnóstico flotante" })
 
-
--- LSP
-vim.api.nvim_create_autocmd("LspAttach", {
-  group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
-  callback = function(ev)
-    local builtin = require("telescope.builtin")
-    vim.keymap.set("n", "gd", builtin.lsp_definitions, { buffer = ev.buf, desc = "Ir a Definición" })
-    vim.keymap.set("n", "gr", builtin.lsp_references, { buffer = ev.buf, desc = "Ver Referencias" })
-    vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = ev.buf, desc = "Documentación" })
-    vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { buffer = ev.buf, desc = "Renombrar Variable" })
-    vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { buffer = ev.buf, desc = "Acciones de Código" })
-
 -- Salir de la terminal pulsando ESC dos veces seguidas
 vim.keymap.set('t', '<Esc><Esc>', [[<C-\><C-n>]], { desc = 'Salir de modo terminal' })
 
@@ -274,5 +262,17 @@ vim.keymap.set('t', '<C-h>', [[<C-\><C-n><C-w>h]], { desc = 'Mover a la ventana 
 vim.keymap.set('t', '<C-j>', [[<C-\><C-n><C-w>j]], { desc = 'Mover a la ventana abajo' })
 vim.keymap.set('t', '<C-k>', [[<C-\><C-n><C-w>k]], { desc = 'Mover a la ventana arriba' })
 vim.keymap.set('t', '<C-l>', [[<C-\><C-n><C-w>l]], { desc = 'Mover a la ventana derecha' })
+
+
+-- LSP
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
+  callback = function(ev)
+    local builtin = require("telescope.builtin")
+    vim.keymap.set("n", "gd", builtin.lsp_definitions, { buffer = ev.buf, desc = "Ir a Definición" })
+    vim.keymap.set("n", "gr", builtin.lsp_references, { buffer = ev.buf, desc = "Ver Referencias" })
+    vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = ev.buf, desc = "Documentación" })
+    vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { buffer = ev.buf, desc = "Renombrar Variable" })
+    vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { buffer = ev.buf, desc = "Acciones de Código" })
 end,
 })
