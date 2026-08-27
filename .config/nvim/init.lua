@@ -119,7 +119,7 @@ require("lazy").setup({
       local ui = require("harpoon.ui")
       vim.keymap.set("n", "<leader>ha", mark.add_file, { desc = "Harpoon: Marcar archivo" })
       vim.keymap.set("n", "<leader>hh", ui.toggle_quick_menu, { desc = "Harpoon: Ver marcados" })
-      
+
       -- Se agrupan visualmente para que Which-Key no sature la pantalla
       vim.keymap.set("n", "<leader>1", function() ui.nav_file(1) end, { desc = "Harpoon (1-4)" })
       vim.keymap.set("n", "<leader>2", function() ui.nav_file(2) end, { desc = "which_key_ignore" })
@@ -242,6 +242,16 @@ vim.keymap.set("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Cerrar pestaña 
 vim.keymap.set("n", "<leader>sv", "<cmd>vsplit<cr>", { desc = "Dividir Pantalla Vertical" })
 vim.keymap.set("n", "<leader>sh", "<cmd>split<cr>", { desc = "Dividir Pantalla Horizontal" })
 
+-- Abrir Lazydocker en una terminal dentro de Neovim
+vim.keymap.set("n", "<leader>ld", "<cmd>term lazydocker<CR>", { desc = "Abrir Lazydocker (Gestor Docker)" })
+
+-- Abrir Lazygit en una terminal dentro de Neovim
+vim.keymap.set("n", "<leader>lg", "<cmd>term lazygit<CR>", { desc = "Abrir Lazygit (Control de Versiones)" })
+
+-- Mostrar diagnósticos (errores/warnings del LSP) en una ventana flotante
+vim.keymap.set("n", "<leader>n", vim.diagnostic.open_float, { desc = "Mostrar diagnóstico flotante" })
+
+
 -- LSP
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
@@ -264,8 +274,5 @@ vim.keymap.set('t', '<C-h>', [[<C-\><C-n><C-w>h]], { desc = 'Mover a la ventana 
 vim.keymap.set('t', '<C-j>', [[<C-\><C-n><C-w>j]], { desc = 'Mover a la ventana abajo' })
 vim.keymap.set('t', '<C-k>', [[<C-\><C-n><C-w>k]], { desc = 'Mover a la ventana arriba' })
 vim.keymap.set('t', '<C-l>', [[<C-\><C-n><C-w>l]], { desc = 'Mover a la ventana derecha' })
-
--- Abrir Lazydocker en una terminal dentro de Neovim
-vim.keymap.set("n", "<leader>ld", "<cmd>term lazydocker<CR>", { desc = "Abrir Lazydocker (Gestor Docker)" })
 end,
 })
