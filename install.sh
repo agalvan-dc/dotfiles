@@ -1,35 +1,55 @@
-#!/bin/bash
+ "Dotfiles setup complete!"#!/bin/bash
 
-# Define paths
 DOTFILES_DIR="$HOME/dotfiles"  
 BACKUP_DIR="$HOME/dotfiles_backup"
+LOCAL_BIN="$HOME/.local/bin"
 
-# Asegurarse de que el directorio .config existe (necesario para Neovim)
 mkdir -p "$HOME/.config"
+mkdir -p "$LOCAL_BIN"
 
-# Files and directories to link and their source locations
+
 declare -A FILES
-FILES[".bashrc"]="$DOTFILES_DIR/bash/.bashrc"
 FILES[".vimrc"]="$DOTFILES_DIR/vim/.vimrc"
 FILES[".config/nvim"]="$DOTFILES_DIR/nvim"
 
-# Create a backup directory
+
 mkdir -p "$BACKUP_DIR"
 
-# Loop through each file/dir and create a symlink
 for target_path in "${!FILES[@]}"; do
     src="${FILES[$target_path]}"
     dest="$HOME/$target_path"
 
-    # Backup existing file, directory, or symlink if it exists (-L atrapa enlaces rotos)
     if [ -e "$dest" ] || [ -L "$dest" ]; then
-        echo "Backing up existing $target_path to $BACKUP_DIR"
+        echo "Copiando $target_path a $BACKUP_DIR..."
         mv "$dest" "$BACKUP_DIR/"
     fi
 
-    # Create symlink
-    echo "Linking $src to $dest"
+    echo "Creando symlink: $src -> $dest"
     ln -s "$src" "$dest"
 done
 
-echo "Dotfiles setup complete!"
+if ! command -v lazygit &> /dev/null; then
+    echo "Instalando Lazygit en $LOCAL_BIN..."
+    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    
+    tar xf lazygit.tar.gz lazygit
+    mv lazygit "$LOCAL_BIN/lazygit"
+    rm lazygit.tar.gz
+else
+    echo "Lazygit ya está instalado."
+fi
+
+if ! command -v lazydocker &> /dev/null; then
+    echo "Instalando Lazydocker en $LOCAL_BIN..."
+    # Forzamos la instalación en .local/bin para evitar sudo
+    DIR="$LOCAL_BIN" curl -s https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash
+else
+    echo "Lazydocker ya está instalado."
+fi
+
+echo "=========================================="
+echo "✅ Instalación completada sin usar sudo."
+echo "⚠️  ATENCIÓN: Añade esta línea a tu .bashrc si aún no la tienes:"
+echo '    export PATH="$HOME/.local/bin:$PATH"'
+echo "=========================================="
