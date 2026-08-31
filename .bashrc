@@ -1,29 +1,38 @@
-# .bashrc
+# ==============================================================================
+# .bashrc - User Configuration
+# ==============================================================================
 
 # Source global definitions
 if [ -f /etc/bashrc ]; then
     . /etc/bashrc
 fi
 
-# User specific environment
+# Environment Variables
+export EDITOR="vim"
+export VISUAL="vim"
+
+# Fix KDE Konsole key repeat issue (disables accent pop-up menu)
+export QT_IM_MODULE=simple
+
+# User Bin Directories (Deduplicated PATH entries)
 if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
-    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+    export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 fi
-export PATH
 
-# Uncomment the following line if you don't like systemctl's auto-paging feature:
-# export SYSTEMD_PAGER=
-
-# User specific aliases and functions
+# Source custom modular configs from ~/.bashrc.d if present
 if [ -d ~/.bashrc.d ]; then
     for rc in ~/.bashrc.d/*; do
         if [ -f "$rc" ]; then
             . "$rc"
         fi
     done
+    unset rc
 fi
-unset rc
 
-
-# Added by Antigravity CLI installer
-export PATH="/home/armandogalvan/.local/bin:$PATH"
+# Useful Aliases
+alias ll='ls -alF --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'
+alias grep='grep --color=auto'
+alias reload='source ~/.bashrc'
+alias vim='gvim -v'
