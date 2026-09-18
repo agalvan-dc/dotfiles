@@ -144,5 +144,4 @@ if [ -n "$PS1" ]; then
     }
 
     PS1='\[\033[01;32m\]\u@\h\[\033[0m\]:\[\033[01;34m\]\w\[\033[0m\]$(__git_branch)\$ '
-    unset -f __git_branch
 fi
