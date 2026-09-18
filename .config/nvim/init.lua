@@ -6,20 +6,15 @@ vim.g.maplocalleader = " "
 
 vim.opt.number = true         -- Números de línea
 vim.opt.relativenumber = true -- Números relativos
-vim.opt.shiftwidth = 4        -- Tabulación de 4 espacios
-vim.opt.expandtab = false     -- Usar tabs
+vim.opt.tabstop = 4           -- Ancho visual del tab
+vim.opt.softtabstop = 4       -- <Tab> en modo insertar = tab real de 4
+vim.opt.shiftwidth = 4        -- Indentación (>>, autoindent)
+vim.opt.expandtab = false     -- Usar tabs reales, NO espacios
 vim.opt.clipboard = "unnamedplus" -- Portapapeles del sistema
 vim.opt.splitright = true     -- Divisiones a la derecha
 vim.opt.splitbelow = true     -- Divisiones abajo
 vim.opt.scrolloff = 8         -- Mantiene 8 líneas de margen al bajar
 vim.opt.updatetime = 50       -- Respuesta más rápida
-
--- Parche Neovim 0.10+ para Telescope
-if vim.treesitter and vim.treesitter.language and vim.treesitter.language.ft_to_lang == nil then
-  vim.treesitter.language.ft_to_lang = function(ft)
-    return vim.treesitter.language.get_lang(ft) or ft
-  end
-end
 
 -- =========================================================================
 -- 2. INSTALACIÓN DE LAZY.NVIM
@@ -47,32 +42,38 @@ require("lazy").setup({
     end,
   },
 
+  -- Temas alternativos (se eligen con <leader>ct)
+  {
+    "EdenEast/nightfox.nvim",
+    lazy = false,
+    priority = 900,
+  },
+  {
+    "rebelot/kanagawa.nvim",
+    lazy = false,
+    priority = 900,
+  },
+
   {
     "MeanderingProgrammer/render-markdown.nvim",
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
     opts = {},
   },
 
-  -- Treesitter (Resaltado) - CORREGIDO
-    {
-      'nvim-treesitter/nvim-treesitter',
-      branch = 'main',
-      build = ':TSUpdate',
-      config = function()
-    local ts = require('nvim-treesitter')
-    ts.setup()
-
-    -- Install language parsers
-     ts.install({ 'c', 'cpp', 'python', 'rust', 'lua', 'markdown', 'markdown_inline' })
-
-     -- Enable syntax highlighting on file load
-      vim.api.nvim_create_autocmd('FileType', {
-          callback = function()
-        pcall(vim.treesitter.start)
-          end,
-    })
-      end,
-    },
+  -- Treesitter (Resaltado)
+  -- Los parsers se instalan SOLO vía ensure_installed; el build :TSUpdate
+  -- los actualiza. No hace falta autocmd: Neovim activa el resaltado solo.
+  -- Requisito: un compilador de C (gcc/clang) para compilar los parsers.
+  {
+    "nvim-treesitter/nvim-treesitter",
+    main = "nvim-treesitter",
+    build = ":TSUpdate",
+    config = function()
+      require("nvim-treesitter").setup({
+        ensure_installed = { "c", "cpp", "python", "rust", "lua", "markdown", "markdown_inline" },
+      })
+    end,
+  },
 
   { "williamboman/mason.nvim", opts = {} },
 
@@ -162,16 +163,17 @@ require("lazy").setup({
   },
 
   -- Buscador (Telescope + Integración de Proyectos)
+  -- La rama 0.1.x (2023) estaba rota en Neovim 0.11+; master es la sana.
   {
     "nvim-telescope/telescope.nvim",
-    branch = "0.1.x",
     dependencies = { "nvim-lua/plenary.nvim", "ahmedkhalf/project.nvim" },
     config = function()
       local telescope = require("telescope")
       telescope.setup({
         defaults = { preview = { treesitter = false } },
       })
-      telescope.load_extension("projects")
+      -- pcall: si project.nvim falla en una máquina nueva, telescope sigue funcionando
+      pcall(telescope.load_extension, "projects")
       local builtin = require("telescope.builtin")
       vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Buscar Archivos" })
       vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Buscar Texto Global" })
@@ -204,7 +206,105 @@ require("lazy").setup({
     end,
   },
 
+  -- Iconos ligeros (Mini.icons)
+  {
+    "echasnovski/mini.icons",
+    opts = {},
+    config = function()
+      require("mini.icons").setup()
+    end,
+  },
+
   { "mrcjkb/rustaceanvim", version = "^4", ft = { "rust" } },
+  { "42Paris/42header", cmd = "Stdheader" },
+
+  -- Comentar código con gc / gcc
+  {
+    "numToStr/Comment.nvim",
+    keys = {
+      { "gc", mode = { "n", "v" }, desc = "Comentar línea/selección" },
+      { "gb", mode = { "n", "v" }, desc = "Comentar bloque" },
+    },
+    config = function()
+      require("Comment").setup()
+    end,
+  },
+
+  -- Barra de estado (se adapta al tema activo)
+  {
+    "nvim-lualine/lualine.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    event = "VeryLazy",
+    config = function()
+      require("lualine").setup({ options = { theme = "auto" } })
+    end,
+  },
+
+  -- Formateo al guardar (conform.nvim)
+  {
+    "stevearc/conform.nvim",
+    event = { "BufWritePre" },
+    cmd = { "ConformInfo" },
+    keys = {
+      { "<leader>cf", function() require("conform").format({ async = true }) end, desc = "Formatear archivo" },
+    },
+    opts = {
+      formatters_by_ft = {
+        c        = { "clang-format" },
+        cpp      = { "clang-format" },
+        python   = { "ruff_format" },
+        lua      = { "stylua" },
+        rust     = { "rustfmt" },
+        sh       = { "shfmt" },
+        markdown = { "prettierd", "prettier", stop_after_first = true },
+        json     = { "prettierd", "prettier", stop_after_first = true },
+      },
+      format_on_save = { timeout_ms = 2000, lsp_format = "fallback" },
+    },
+  },
+
+  -- Cambiar rodeos facilmente: ys / cs / ds
+  {
+    "kylechui/nvim-surround",
+    version = "*",
+    opts = {},
+  },
+
+  -- Sesiones persistentes por proyecto (se guardan solas al salir)
+  {
+    "folke/persistence.nvim",
+    event = "BufReadPre",
+    opts = {},
+    keys = {
+      { "<leader>ss", function() require("persistence").save() end, desc = "Guardar sesión" },
+      { "<leader>so", function() require("persistence").load() end, desc = "Restaurar sesión" },
+      { "<leader>sl", function() require("persistence").load({ last = true }) end, desc = "Última sesión" },
+      { "<leader>sd", function() require("persistence").stop() end, desc = "Borrar sesión" },
+    },
+  },
+
+  -- Multicursor (Ctrl+n sobre una palabra para añadir ocurrencias)
+  {
+    "mg979/vim-visual-multi",
+    branch = "master",
+    event = "VeryLazy",
+    init = function()
+      vim.g.VM_theme = "nord"
+    end,
+  },
+
+  -- Guías de indentación
+  {
+    "lukas-reineke/indent-blankline.nvim",
+    main = "ibl",
+    opts = {
+      indent = { char = "│" },
+      scope = { enabled = true },
+      exclude = {
+        filetypes = { "help", "health", "man", "terminal", "lspinfo", "dashboard" },
+      },
+    },
+  },
 })
 
 -- =========================================================================
@@ -242,6 +342,9 @@ vim.keymap.set("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Cerrar pestaña 
 vim.keymap.set("n", "<leader>sv", "<cmd>vsplit<cr>", { desc = "Dividir Pantalla Vertical" })
 vim.keymap.set("n", "<leader>sh", "<cmd>split<cr>", { desc = "Dividir Pantalla Horizontal" })
 
+-- Abrir terminal en un buffer nuevo (igual que :term)
+vim.keymap.set("n", "<leader>t", "<cmd>terminal<CR>", { desc = "Abrir terminal" })
+
 -- Abrir Lazydocker en una terminal dentro de Neovim
 vim.keymap.set("n", "<leader>ld", "<cmd>term lazydocker<CR>", { desc = "Abrir Lazydocker (Gestor Docker)" })
 
@@ -251,11 +354,17 @@ vim.keymap.set("n", "<leader>lg", "<cmd>term lazygit<CR>", { desc = "Abrir Lazyg
 -- Mostrar diagnósticos (errores/warnings del LSP) en una ventana flotante
 vim.keymap.set("n", "<leader>n", vim.diagnostic.open_float, { desc = "Mostrar diagnóstico flotante" })
 
+-- Cambiar de tema visual al vuelo (Telescope colorscheme)
+vim.keymap.set("n", "<leader>ct", "<cmd>Telescope colorscheme<CR>", { desc = "Cambiar tema visual" })
+
 -- Salir de la terminal pulsando ESC dos veces seguidas
 vim.keymap.set('t', '<Esc><Esc>', [[<C-\><C-n>]], { desc = 'Salir de modo terminal' })
 
 -- Opción alternativa: Usar Ctrl + o para salir rápido
 vim.keymap.set('t', '<C-o>', [[<C-\><C-n>]], { desc = 'Salir de modo terminal' })
+
+-- Insertar Header de 42
+vim.keymap.set("n", "<leader>9", "<cmd>Stdheader<CR>", { desc = "Insertar Header 42" })
 
 -- Navegar a otras ventanas/splits directamente desde la terminal (sin necesidad de salir a modo normal antes)
 vim.keymap.set('t', '<C-h>', [[<C-\><C-n><C-w>h]], { desc = 'Mover a la ventana izquierda' })

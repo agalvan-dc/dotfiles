@@ -1,0 +1,23 @@
+# Global Git ignore rules (~/.gitignore_global)
+# Installed by install.sh and referenced from ~/.gitconfig.
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor backup / swap files
+*~
+*.swp
+*.swo
+*.un~
+
+# Compilation artifacts
+__pycache__/
+*.pyc
+*.o
+*.a
+*.so
+
+# IDE/editor folders
+.idea/
+.vscode/

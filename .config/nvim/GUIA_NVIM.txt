@@ -1,0 +1,305 @@
+============================================================
+GUÍA COMPLETA DE TU CONFIGURACIÓN DE NEOVIM
+============================================================
+Config en: ~/.config/nvim/init.lua
+Gestor de plugins: Lazy.nvim
+============================================================
+
+ÍNDICE
+- 1. CONFIGURACIÓN BÁSICA
+- 2. PLUGINS INSTALADOS (quién hace qué)
+- 3. ATAJO: CONFIGURACIÓN GENERAL (guardar, salir, ventanas)
+- 4. ATAJO: EXPLORACIÓN (Telescope, Neo-tree, Harpoon)
+- 5. ATAJO: GIT (Gitsigns, Lazygit)
+- 6. ATAJO: LSP (autocompletado, errores, renombrar)
+- 7. ATAJO: MODO TERMINAL
+- 8. ATAJO: EDICIÓN RÁPIDA (comentarios, mover líneas, flash)
+- 9. ATAJO: TEMAS Y VISUAL
+- 10. MODOS DE NEOVIM
+- 11. CÓMO SACARLE PARTIDO (workflows)
+
+
+============================================================
+1. CONFIGURACIÓN BÁSICA
+============================================================
+
+- Tecla líder: ESPACIO (la usas antes de casi todos los atajos,
+  p. ej. <space>w = guardar)
+- Números de línea: activos (absoluto + relativo)
+- Tabulación: tabs reales de 4 espacios (NO espacios)
+- Portapapeles: conectado al del sistema (copiar/pegar en todo el SO)
+- Splits nuevos: se abren abajo y a la derecha
+- Al hacer scroll o búsquedas, el cursor se mantiene centrado
+
+
+============================================================
+2. PLUGINS INSTALADOS
+============================================================
+
+┌─ VISUAL ──────────────────────────────────────────────────┐
+│ tokyonight  -> Tema por defecto (estilo "night")          │
+│ nightfox     -> Tema alternativo                          │
+│ kanagawa     -> Tema alternativo                          │
+│ lualine      -> Barra de estado moderna en la parte baja  │
+│ bufferline   -> Barra de pestañas con diagnóstico LSP     │
+│ render-markdown -> Previsualiza Markdown en el editor     │
+│ mini.icons   -> Iconos en archivos y UI                   │
+└───────────────────────────────────────────────────────────┘
+
+┌─ EXPLORACIÓN / BUSQUEDA ──────────────────────────────────┐
+│ telescope     -> Buscador fuzzy (archivos, texto, buffers)│
+│ project.nvim  -> Detección de proyectos (.git/Makefile)   │
+│ neo-tree      -> Explorador de archivos lateral           │
+│ harpoon       -> Fijar archivos favoritos y saltar rápido │
+│ flash         -> Saltar a cualquier parte de la pantalla  │
+│ which-key     -> Menú que muestra los atajos al pulsar    │
+│                 la tecla líder (espacio)                  │
+└───────────────────────────────────────────────────────────┘
+
+┌─ LENGUAJES / APOYO ───────────────────────────────────────┐
+│ nvim-treesitter  -> Resaltado de sintaxis avanzado        │
+│    (c, cpp, python, rust, lua, markdown)                  │
+│ mason            -> Gestor de servidores LSP              │
+│ lspconfig        -> LSP: clangd, pyright, ruff, lua_ls    │
+│ rustaceanvim     -> Herramientas extra para Rust          │
+│ 42header         -> Cabecera oficial de proyectos 42      │
+└───────────────────────────────────────────────────────────┘
+
+┌─ GIT / HERRAMIENTAS ──────────────────────────────────────┐
+│ gitsigns         -> Muestra y navega cambios en el código │
+│ vim-tmux-navigator -> Mover entre paneles Neovim <-> tmux │
+│ Comment.nvim     -> Comentar código con gc / gcc / gb     │
+└───────────────────────────────────────────────────────────┘
+
+
+============================================================
+3. ATAJOS GENERALES (guardar, salir, ventanas, buffers)
+============================================================
+
+  <space>w        Guardar archivo
+  <space>q        Cerrar ventana
+  <C-s>           Guardar rápido (modo normal e insertar)
+  <Esc>           Limpiar resaltado de búsquedas
+  <S-l>           Siguiente pestaña/buffer
+  <S-h>           Pestaña/buffer anterior
+  <space>bd       Cerrar pestaña actual
+  <space>sv       Dividir pantalla vertical
+  <space>sh       Dividir pantalla horizontal
+  <space>ld       Abrir Lazydocker (terminal interna)
+  <space>lg       Abrir Lazygit (terminal interna)
+  <space>n        Mostrar diagnóstico/error en ventana flotante
+  <space>ct       Cambiar de tema visual (Telescope colorscheme)
+  <space>9        Insertar cabecera de 42 (Stdheader)
+
+NAVEGACIÓN ENTRE VENTANAS (splits):
+  <C-h>  <C-j>  <C-k>  <C-l>   Moverte a ventana izq/abajo/arriba/dcha
+  (funciona también entre Neovim y tmux)
+
+
+============================================================
+4. EXPLORACIÓN Y BUSQUEDA
+============================================================
+
+  <space>e        Abrir/cerrar explorador de archivos (Neo-tree)
+  <space>ff       Buscar archivos (fuzzy)
+  <space>fg       Buscar texto en todos los archivos (live_grep)
+  <space>fb       Ver archivos abiertos (buffers)
+  <space>fp       Cambiar de proyecto (detecta .git, Makefile...)
+
+HARPOON (archivos fijos):
+  <space>ha       Marcar el archivo actual (añadir a lista)
+  <space>hh       Ver lista de archivos marcados (menú rápido)
+  <space>1        Saltar al archivo marcado nº 1
+  <space>2        Saltar al archivo marcado nº 2
+  <space>3        Saltar al archivo marcado nº 3
+  <space>4        Saltar al archivo marcado nº 4
+
+FLASH (salto ultra-rápido):
+  s               (en modo normal/visual) escribe las letras que
+                  aparecen en pantalla y pulsa la marcada
+  - Es como "surround" de búsqueda: pulsas s, aparecen letras
+    sobre las palabras, tecleas las que marcan tu destino.
+
+
+============================================================
+5. GIT
+============================================================
+
+  <space>gp       Previsualizar cambios del bloque (diff)
+  <space>gr       Deshacer cambios de un bloque (reset hunk)
+  ]g              Ir al siguiente cambio
+  [g              Ir al cambio anterior
+  <space>lg       Abrir Lazygit (terminal)
+
+  + Columna # a la izquierda: ~/cambios, bloques de añadido/
+    borrado visible desde el editor.
+
+  CONSEJO LAZYGIT:
+  - p   -> push; P -> pull
+  - c   -> commit; ca -> amend
+  - v   -> seleccionar líneas para stash/cherry-pick
+  - e   -> abrir archivo en el editor externo (tu nvim)
+  - <tab> -> cambiar de panel (status / archivos / commits / stashes)
+
+
+============================================================
+6. LSP (autocompletado, errores, refactor)
+============================================================
+
+  gd              Ir a la definición de una función/variable
+  gr              Ver todas las referencias donde se usa
+  K               Mostrar documentación (hover) de la palabra
+  <space>rn       Renombrar variable en todo el proyecto
+  <space>ca       Acciones de código (refactorizar, importar, etc.)
+  <space>n        Ver errores/warnings del archivo actual
+
+SERVIDORES ACTIVOS:
+  - C / C++   -> clangd
+  - Python    -> pyright + ruff (errores)
+  - Lua       -> lua_ls
+  - Rust      -> rustaceanvim (además del LSP base)
+
+CONSEJOS:
+  - <space>ca sobre un error suele dar "Quick Fix" automático.
+  - En Rust, :RustLsp може tocar acciones específicas (busca :help).
+  - Ruff también formatea/ordenar importaciones si lo configuras.
+
+
+============================================================
+7. MODO TERMINAL
+============================================================
+
+  Desde el editor:
+  <space>ld        Term abierta con Lazydocker
+  <space>lg        Term abierta con Lazygit
+
+  DENTRO de la terminal (modo terminal):
+  <Esc><Esc>       Salir de modo terminal (volver a Normal)
+  <C-o>            Salir de modo terminal (alternativa)
+  <C-h>  <C-j>  <C-k>  <C-l>   Saltar a otra ventana sin salir
+
+
+============================================================
+8. EDICIÓN RÁPIDA
+============================================================
+
+  Modo VISUAL (selección):
+  J               Mover línea seleccionada hacia abajo
+  K               Mover línea seleccionada hacia arriba
+  <space>p        Pegar sin sobrescribir el portapapeles
+  s               Saltar/flash a un punto de la selección
+
+  Comentarios:
+  gcc             Comentar/descomentar la línea actual
+  gc              (en visual) comentar la selección
+  gb              Comentar en bloque (visual)
+
+  Navegación centrada:
+  <C-d>           Bajar media página (cursor centrado)
+  <C-u>           Subir media página (cursor centrado)
+  n               Siguiente coincidencia de búsqueda (centrado)
+  N               Anterior coincidencia (centrado)
+
+
+============================================================
+9. TEMAS
+============================================================
+
+  <space>ct       Abre selector con todos los temas instalados
+  Temas disponibles:
+  - Tokyo Night (por defecto) / style "night"
+  - Nightfox
+  - Kanagawa
+  Eliges con el cursor y Enter, y se aplican al instante.
+
+
+============================================================
+10. MODOS DE NEOVIM (recordatorio rápido)
+============================================================
+
+  Normal     -> moverse/editar (Esc). Es el modo por defecto.
+  Insertar   -> escribir texto (i, a, o, I, A).
+  Visual     -> seleccionar (v=caracteres, V=líneas, <C-v>=bloques).
+  Terminal   -> terminal integrada (:term o <space>ld/lg).
+  Comando    -> ejecutar comandos ( : ), p. ej. :help, :Lazy.
+
+  Atajos de modo Normal útiles de base:
+  yy         copia línea / yy + p pega
+  dd         borra línea
+  ciw        cambia palabra completa
+  gi         vuelve al último sitio en Insertar
+  vaw        selecciona una palabra
+  gg         inicio del archivo / G final del archivo
+  %          salto de paréntesis/llave correspondiente
+
+
+============================================================
+11. CÓMO SACARLE PARTIDO (workflows)
+============================================================
+
+A. WORKFLOW DIARIO CON GIT:
+   1. <space>lg  -> abre Lazygit
+   2. <tab>      -> a "Files", revisa el status
+   3. c          -> commit con mensaje
+   4. p          -> push
+   5. <Esc><Esc> -> vuelves al editor
+
+B. BUSCAR NOMBRE DE FUNCIÓN:
+   1. <space>fg  -> busca texto global
+   2. escribe el nombre (ej. "get_user")
+   3. Enter para ir al fichero/resultado
+
+C. REFACTORIZAR UNA VARIABLE:
+   1. Sitúate sobre la variable
+   2. <space>rn  -> escribe el nuevo nombre -> Enter
+   3. Listo, se renombra en TODOS los usos.
+
+D. NAVEGAR POR EL PROYECTO:
+   1. <space>fp  -> lista de proyectos
+   2. Entra en el que quieras (recuerda tu sesión)
+   3. <space>e  -> abre el árbol de archivos lateral
+   4. <space>ff -> busca archivos por nombre
+
+E. TENER TUS ARCHIVOS FAVORITOS A UN CLICK:
+   1. Abre el archivo que repites a diario
+   2. <space>ha  -> lo marca
+   3. Repite con 4 archivos como máximo
+   4. <space>1..4 -> saltas a ellos al instante
+   5. <space>hh  -> menú para ver/quitar marcados
+
+F. USAR TMUX + NVIM JUNTOS:
+   - <C-h> <C-j> <C-k> <C-l> mueven el cursor entre paneles de
+     Neovim y tmux sin romper la sesión ni los splits.
+
+G. ESCRITURA DE CÓDIGO RÁPIDA:
+   - s (flash) para saltar sin salir de las manos del teclado.
+   - gcc para comentar líneas al momento.
+   - K para ver la doc de la función bajo el cursor.
+   - <space>ca para que el LSP arregle importaciones/fixes.
+
+H. PRESENTACIÓN / LECTURA:
+   - render-markdown pinta los ficheros .md (listas, tablas, código)
+   - <space>ct -> cambia de tema según la luz ambiental
+   - <C-d>/<C-u> con cursor centrado = lectura cómoda.
+
+
+============================================================
+COMANDOS ÚTILES DEL GESTOR DE PLUGINS (Lazy.nvim)
+============================================================
+
+  :Lazy          Abrir panel de gestión
+  :Lazy sync     Actualizar plugins (a mano)
+  :Lazy update   Instalar nuevas versiones
+  :Lazy check    Ver qué puede actualizarse
+  :TSUpdate      Actualizar parsers de Treesitter
+  :Mason         Gestionar instalación de LSPs
+  :checkhealth   Diagnóstico de salud de la config
+
+  En el panel :Lazy dentro del archivo de un plugin:
+  u = actualizar, s = sincronizar, S = reinstalar,
+  x = desinstalar, d = abrir docs del plugin (en neovim)
+
+============================================================
+💡 TRUCO: pulsa ESPACIO y espera -> which-key te muestra
+   todas las combinaciones posibles según lo que pulses después.
+============================================================

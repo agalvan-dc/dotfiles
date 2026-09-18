@@ -1,0 +1,15 @@
+# Editor backup / swap files
+*.un~
+*~
+*.swp
+*.swo
+
+# Machine-specific / generated state
+.python_history
+.config/KDE/
+.config/toolbox/
+.config/fish/fish_variables
+
+# OS junk
+.DS_Store
+Thumbs.db
