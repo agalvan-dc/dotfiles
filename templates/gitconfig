@@ -16,7 +16,9 @@
 	default = simple
 
 [merge]
-	conflictstyle = zdiff3
+	# diff3 works on all Git versions (zdiff3 requires Git >= 2.35).
+	# The installer automatically upgrades to zdiff3 when supported.
+	conflictstyle = diff3
 
 [core]
 	editor = vim
