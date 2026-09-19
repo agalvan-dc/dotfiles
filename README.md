@@ -99,7 +99,8 @@ nvim                   # first launch downloads all plugins via lazy.nvim
 
 The installer asks for your Git name and email once and generates
 `~/.gitconfig` from `templates/gitconfig` (with sensible defaults such as
-`main` as the default branch and `zdiff3` merge style).
+`main` as the default branch and `diff3` as the merge conflict style, which
+is auto-upgraded to `zdiff3` when Git >= 2.35 is available).
 
 ## Manual installation
 

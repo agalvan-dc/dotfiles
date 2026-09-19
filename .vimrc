@@ -92,6 +92,10 @@ Plug 'tpope/vim-fugitive'
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-repeat'
 
+" Cscope / Gtags (símbolos en proyectos grandes)
+Plug 'ludovicchabant/vim-gutentags'
+Plug 'skywind3000/gutentags_plus'
+
 " Editing utilities
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
@@ -182,3 +186,29 @@ nnoremap <leader>u :UndotreeToggle<CR>
 
 " Y acts like the other capital commands (yank to end of line)
 nnoremap Y y$
+
+" ---------------------------------------------------------------------------
+" 8. Cscope & Gtags (vim-gutentags + gutentags_plus)
+"    Símbolos de C/C++: definiciones, llamadas, referencias...
+" ---------------------------------------------------------------------------
+let g:gutentags_define_advanced_commands = 1
+let g:gutentags_modules = ['ctags', 'gtags_cscope']
+let g:gutentags_project_root = ['.root', '.git', '.hg', '.project']
+let g:gutentags_ctags_tagfile = '.tags'
+let g:gutentags_cache_dir = expand('~/.cache/vim/ctags/')
+let g:gutentags_plus_nomap = 1 " No usar los mapeos por defecto (los defino aquí)
+let g:gutentags_plus_switch = 1 " Cambiar el foco a la ventana de resultados
+
+" Los resultados se abren en la ventana de resultados (quickfix).
+" Nota: <leader>gg y <leader>gd ya están tomados por Git (fugitive),
+" así que "definición" va en <leader>gD y "funciones a las que llama" en <leader>gB.
+noremap <silent> <leader>gs :GscopeFind s <C-R><C-W><cr>   " Símbolo (C symbol)
+noremap <silent> <leader>gD :GscopeFind g <C-R><C-W><cr>   " Definición
+noremap <silent> <leader>gc :GscopeFind c <C-R><C-W><cr>   " Funciones que llaman a esto
+noremap <silent> <leader>gt :GscopeFind t <C-R><C-W><cr>   " Texto
+noremap <silent> <leader>ge :GscopeFind e <C-R><C-W><cr>   " Patrón egrep
+noremap <silent> <leader>gf :GscopeFind f <C-R>=expand("<cfile>")<cr><cr> " Archivo
+noremap <silent> <leader>gi :GscopeFind i <C-R>=expand("<cfile>")<cr><cr> " Archivos que incluyen esto
+noremap <silent> <leader>gB :GscopeFind d <C-R><C-W><cr>   " Funciones a las que llama
+noremap <silent> <leader>ga :GscopeFind a <C-R><C-W><cr>   " Dónde se asigna un valor
+noremap <silent> <leader>gz :GscopeFind z <C-R><C-W><cr>   " Llamadas a esta función

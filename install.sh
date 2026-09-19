@@ -30,10 +30,19 @@ set -euo pipefail
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOCAL_BIN="$HOME/.local/bin"
 
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m'
+# Use ANSI colors only when stdout is a real terminal; otherwise keep the
+# output plain so no raw escape codes leak into captures/pipes.
+if [ -t 1 ]; then
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    RED='\033[0;31m'
+    NC='\033[0m'
+else
+    GREEN=''
+    YELLOW=''
+    RED=''
+    NC=''
+fi
 
 info()  { echo -e "${GREEN}==>${NC} $*"; }
 warn()  { echo -e "${YELLOW}==>${NC} $*"; }
@@ -85,10 +94,12 @@ link_file() {
         return 0
     fi
 
+    if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
+        info "Already in place: $dest"
+        return 0
+    fi
+
     if [ -e "$dest" ] || [ -L "$dest" ]; then
-        if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
-            return 0                                   # already linked correctly
-        fi
         backup_path
         mv "$dest" "$BACKUP_DIR/$(basename "$dest")"
         warn "Backed up existing $(basename "$dest") -> $BACKUP_DIR"
@@ -112,20 +123,30 @@ install_shell() {
     local src="$DOTFILES_DIR/templates/gitconfig"
     local dest="$HOME/.gitconfig"
 
-    if [ -f "$dest" ] && git config --global user.name >/dev/null 2>&1; then
-        warn "Keeping existing ~/.gitconfig (it already has a user.name)."
-        return 0
+    local cur_name cur_email reconfigure
+    cur_name="$(git config --global user.name 2>/dev/null || true)"
+    cur_email="$(git config --global user.email 2>/dev/null || true)"
+
+    # Supported: show current identity and offer to change it. If there is no
+    # identity yet (or it is incomplete), jump straight into the prompts below.
+    if [ -f "$dest" ] && [ -n "$cur_name" ] && [ -n "$cur_email" ]; then
+        info "Git identity already configured: $cur_name <$cur_email>"
+        read -rp "Reconfigure Git identity? [y/N]: " reconfigure || reconfigure=""
+        if [[ ! "$reconfigure" =~ ^[YySs]$ ]]; then
+            echo ""
+            return 0
+        fi
     fi
 
     local default_name default_email name email content
-    default_name="$(git config --global user.name 2>/dev/null || true)"
-    default_email="$(git config --global user.email 2>/dev/null || true)"
-    default_name="${default_name:-$(whoami)}"
+    default_name="${cur_name:-$(whoami)}"
+    default_email="${cur_email:-${USER}@$(hostname)}"
 
     echo ""
-    read -rp "Git user.name  (default: ${default_name}): " name
+    read -rp "Git user.name  (default: ${default_name}): " name || name=""
     name="${name:-$default_name}"
-    read -rp "Git user.email (default: ${default_email}): " email
+    read -rp "Git user.email (default: ${default_email}): " email || email=""
+    email="${email:-$default_email}"
 
     if [ -e "$dest" ]; then
         backup_path
@@ -133,9 +154,18 @@ install_shell() {
         warn "Backed up existing ~/.gitconfig -> $BACKUP_DIR"
     fi
 
+    local conflict_style="diff3"
+    local git_major git_minor
+    git_major="$(git --version 2>/dev/null | awk '{print $3}' | cut -d. -f1)"
+    git_minor="$(git --version 2>/dev/null | awk '{print $3}' | cut -d. -f2)"
+    if [ -n "$git_major" ] && { [ "$git_major" -gt 2 ] || { [ "$git_major" -eq 2 ] && [ "${git_minor:-0}" -ge 35 ]; }; }; then
+        conflict_style="zdiff3"   # Word-level conflict markers (Git >= 2.35)
+    fi
+
     content="$(<"$src")"
     content="${content//'{{NAME}}'/${name}}"
     content="${content//'{{EMAIL}}'/${email}}"
+    content="${content//conflictstyle = diff3/conflictstyle = ${conflict_style}}"
     printf '%s\n' "$content" > "$dest"
     info "Wrote Git identity to ~/.gitconfig."
 }
@@ -285,7 +315,7 @@ menu() {
         echo "  7) Standalone tools (lazygit, lazydocker)"
         echo "  8) Quit"
         echo ""
-        read -rp "Select an option: " choice
+        read -rp "Select an option: " choice || break
 
         case "$choice" in
             1) install_all; break ;;

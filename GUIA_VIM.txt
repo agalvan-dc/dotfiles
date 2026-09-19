@@ -1,0 +1,303 @@
+============================================================
+GUÍA COMPLETA DE TU CONFIGURACIÓN DE VIM
+============================================================
+Config en: ~/.vimrc
+Gestor de plugins: vim-plug (directorio ~/.vim/plugged)
+Versión: Vim 9.0 (Vi IMproved)
+============================================================
+
+ÍNDICE
+- 1. CONFIGURACIÓN BÁSICA
+- 2. PLUGINS INSTALADOS (quién hace qué)
+- 3. ATAJO: GENERAL (guardar, salir, buffers, ventanas)
+- 4. ATAJO: EXPLORACIÓN (NERDTree, FZF, búsquedas)
+- 5. ATAJO: GIT (fugitive, gitgutter)
+- 6. ATAJO: SÍMBOLOS C/C++ (cscope/gtags, único de Vim)
+- 7. ATAJO: EDICIÓN RÁPIDA (comentarios, surround, multi-cursor)
+- 8. MODO VISUAL
+- 9. TEMA Y BARRA DE ESTADO
+- 10. CÓMO INSTALAR/ACTUALIZAR PLUGINS
+- 11. DEPENDENCIAS EXTERNAS (universal-ctags y global) y CÓMO SE GENERAN LOS SÍMBOLOS
+- 12. DIFERENCIAS CLAVE CON NEOVIM
+
+
+============================================================
+1. CONFIGURACIÓN BÁSICA
+============================================================
+
+- Tecla líder: ESPACIO (la usas antes de casi todos los atajos,
+  p. ej. <space>w = guardar)
+- Números de línea: absoluto + relativo
+- Tabulación: 4 espacios (expandtab)
+- Portapapeles: conectado al del sistema (unnamedplus)
+- Deshacer: PERSISTENTE entre sesiones (guarda en ~/.vim/undo/)
+- Sin archivos de respaldo ni swap (se confía en git)
+- Cursor y búsquedas: se mantiene contexto (scrolloff=8)
+
+
+============================================================
+2. PLUGINS INSTALADOS
+============================================================
+
+┌─ TEMA ────────────────────────────────────────────────────┐
+│ nordtheme/vim      -> Tema Nordic                         │
+│ vim-airline        -> Barra de estado                              
+│ vim-airline-themes -> Temas para airline                  
+│ vim-devicons       -> Iconos en la interfaz               
+└───────────────────────────────────────────────────────────┘
+
+┌─ NAVEGACIÓN / ARCHIVOS ───────────────────────────────────┐
+│ nerdtree          -> Explorador de archivos lateral       │
+│ fzf + fzf.vim     -> Búsqueda fuzzy (archivos, texto, rg) │
+│ 42header          -> Cabecera oficial de proyectos 42     │
+└───────────────────────────────────────────────────────────┘
+
+┌─ GIT ─────────────────────────────────────────────────────┐
+│ vim-fugitive      -> Commands Git (:Git, :Gvdiffsplit)    │
+│ vim-gitgutter     -> Marcas de cambios en la columna      │
+│ ctrlp (vía fzf)   -> Búsqueda rápida de archivos          │
+└───────────────────────────────────────────────────────────┘
+
+┌─ SÍMBOLOS (cscope / gtags) ───────────────────────────────┐
+│ vim-gutentags     -> Genera .tags y GTAGS en segundo plano│
+│                    - Detecta la raíz del proyecto (raíz, .git)   │
+│ gutentags_plus    -> Autocompleta :GscopeFind y pobla la   │
+│    ventana de resultados (quickfix) sin tocar la pestaña   │
+└───────────────────────────────────────────────────────────┘
+
+┌─ EDICIÓN ─────────────────────────────────────────────────┐
+│ vim-surround      -> Envuelve con comillas/etiquetas      │
+│ vim-commentary    -> Comentar código (gc/gcc)             │
+│ auto-pairs        -> Cierra paréntesis/llaves solos       │
+│ vim-highlightedyank-> Resalta lo copiado (feedback visual)│
+│ undotree          -> Árbol de deshacer visual             │
+│ vim-visual-multi  -> Multi-cursor (Ctrl+n)                │
+│ targets.vim       -> Text objects extra (ia, aa, 'i, a')  │
+│ vim-dispatch      -> Compilación asíncrona (:Make)        │
+└───────────────────────────────────────────────────────────┘
+
+
+============================================================
+3. ATAJOS GENERALES
+============================================================
+
+  <space>w        Guardar archivo
+  <space>q        Cerrar ventana
+  jj              Salir de modo insertar (como Esc)
+  <space><space>  Saltar al buffer anterior (<C-^>)
+  <S-l>           Siguiente buffer
+  <S-h>           Buffer anterior
+  <space>bd       Cerrar buffer actual
+  <space>sv       Dividir pantalla vertical
+  <space>sh       Dividir pantalla horizontal
+  <C-h> <C-j> <C-k> <C-l>  Moverte entre ventanas
+  <space>t        Abrir una terminal (:term)
+  <space>m        Compilar de forma asíncrona (:Make)
+  <space>u        Árbol de deshacer (undotree)
+  <space>l        Quitar el resaltado de búsqueda
+  <space>h        Insertar cabecera de 42 (Stdheader)
+
+  NOTA: <C-h/j/k/l> es solo de Vim. La integración con los
+  paneles de tmux la hace la config de Neovim (Navigator.nvim),
+  que además sabe saltar a Vim si hay una sesión vim abierta.
+
+
+============================================================
+4. EXPLORACIÓN Y BÚSQUEDA
+============================================================
+
+  <space>e        Abrir/cerrar NERDTree
+  <space>f        Buscar archivos por nombre (fzf :Files)
+  <space>s        Buscar texto en el proyecto (fzf :Rg)
+
+  BUFFERS:
+  :ls / :b <nombre>  listar y saltar a un buffer
+  :bd               borrar el buffer actual
+
+
+============================================================
+5. GIT (fugitive + gitgutter)
+============================================================
+
+  <space>gg       Panel de estado de git (:Git)
+  <space>gd       Diff del buffer contra el índice (:Gvdiffsplit)
+  <space>gg luego:
+    cc            Hacer commit (escribe el mensaje y :wq)
+    dp / do       Difusiones hacia/desde el otro lado del diff
+    dv            Diff vertical
+
+  GITGUTTER (columna con marcas):
+    ]c            Siguiente cambio
+    [c            Cambio anterior
+    <leader>hp     Previsualizar el cambio del bloque (hunk)
+    <leader>hs     Añadir el bloque al índice (stage)
+    <leader>hu     Volver atrás un bloque (undo hunk)
+
+  CONSEJO: gitgutter actualiza con reposo del editor (updatetime).
+
+
+============================================================
+6. SÍMBOLOS C/C++: CSCOPE + GTAGS  <-- LO NUEVO
+============================================================
+
+Esto ES la gran ventaja de Vim frente a Neovim en tu setup:
+búsqueda de símbolos SIN servidor LSP, usando ctags + gtags.
+
+CÓMO FUNCIONA
+  - vim-gutentags detecta la raíz del proyecto (.root, .git, ...)
+  - En segundo plano genera .tags (ctags) y la base GTAGS
+  - gutentags_plus convierte :GscopeFind en búsquedas sobre GTAGS
+  - Los resultados van al QUICKFIX (ventana inferior), y salta
+    automáticamente al resultado bajo el cursor.
+
+ATAJOS (con el cursor SOBRE el símbolo):
+  <space>gs      Encontrar el SÍMBOLO (C symbol) bajo el cursor
+  <space>gD      Ir a la DEFINICIÓN del símbolo
+  <space>gc      Funciones que LLAMAN a este símbolo (callers)
+  <space>gB      Funciones a las que LLAMA (llamadas dentro del símbolo)
+  <space>gt      Buscar TEXTO (la palabra bajo el cursor)
+  <space>ge      Buscar por PATRÓN (egrep)
+  <space>gf      Buscar el ARCHIVO bajo el cursor (:GscopeFind f)
+  <space>gi      Archivos que INCLUYEN al archivo bajo el cursor
+  <space>ga      Dónde se ASIGNA un valor a la variable
+  <space>gz      Llamadas a la función bajo el cursor
+
+NAVEGACIÓN EN RESULTADOS (quickfix):
+  :cn  / :cp       Resultado siguiente / anterior
+  :copen           Abrir la lista de resultados
+  :cclose          Cerrarla
+  <space>gg / gd   OJO: están tomados por Git; por eso
+    la definición es <space>gD y los callers <space>gB.
+
+QUÉ NECESITAS INSTALADO (ver sección 11):
+  universal-ctags  y  global (GTAGS). Sin ellos,
+  gutentags no genera bases y los atajos no responden.
+
+
+============================================================
+7. EDICIÓN RÁPIDA
+============================================================
+
+  Comentarios:
+    gcc              Comentar/descomentar la línea
+    gc               (en Visual) comentar la selección
+    gb               Comentar en bloque (Visual)
+
+  Surround (envolver):
+    ysiw"            Envolver la palabra con comillas
+    cs"'             Cambiar " por ' (con cambiar envoltura)
+    ds"              Borrar las comillas alrededor
+
+  Targets.vim (text objects extra):
+    di' / da'       Borrar dentro / incluyendo comillas simples
+    di" / da"       Ídem con comillas dobles
+    ci( / ci)       Cambiar el contenido del paréntesis
+    ya)             Copiar el contenido y el paréntesis
+    ia / aa         Argumento (dentro / incluyendo comas)
+    i/ / a/         Dentro / alrededor de la función
+    it o i<         Dentro de una etiqueta HTML (.vim ftplugin)
+
+  Multi-cursor (vim-visual-multi):
+    Ctrl+n           Seleccionar la palabra actual y añadir cursores
+    n                Siguiente coincidencia (añadir cursor)
+    q                Dejar de añadir
+    [ / ]            Saltar entre cursores
+
+  Otros:
+    *                Resalta y salta a la siguiente coincidencia
+                     de la palabra bajo el cursor (sin mover el cursor)
+    v J / v K        Mover líneas seleccionadas arriba/abajo
+    .                Repetir el último cambio (vim-repeat lo extiende)
+
+
+============================================================
+8. MODO VISUAL
+============================================================
+
+  v                Visual por caracteres
+  V                Visual por líneas
+  <C-v>            Visual por bloques (columnas)
+  <  y  >          Indentar manteniendo la selección
+  J / K            Mover las líneas seleccionadas
+
+
+============================================================
+9. TEMA Y BARRA DE ESTADO
+============================================================
+
+  - Tema: Nordic (nord), con airline en el mismo estilo
+  - airline muestra: modo, rama git, archivo, errores, línea/col
+  - Tabs en la parte superior (airline-tabline)
+  - Para cambiar de tema: se edita la línea "colorscheme nord"
+    en el .vimrc (no hay selector dinámico como en Neovim)
+
+
+============================================================
+10. GESTIÓN DE PLUGINS (vim-plug)
+============================================================
+
+  :PlugInstall     Instalar los plugins del .vimrc
+  :PlugUpdate      Actualizar todos
+  :PlugStatus      Estado de cada plugin
+  :PlugClean       Quitar los que ya no estén en el .vimrc
+
+  Los plugins nuevos se añaden como líneas Plug '...' entre
+  call plug#begin() y call plug#end() en el .vimrc.
+
+
+============================================================
+11. DEPENDENCIAS EXTERNAS Y GENERACIÓN DE SÍMBOLOS
+============================================================
+
+Instalar una vez (gestor de paquetes del SO):
+  universal-ctags   -> sustituye a exuberant-ctags (el viejo)
+                       genera el fichero .tags con la indexación
+                       de funciones, variables, estructuras...
+  global            -> genera las bases GTAGS/GRTAGS/GPATH
+                       que usa :GscopeFind
+
+En Debian/Ubuntu:
+  sudo apt install universal-ctags global
+
+O en macOS:
+  brew install universal-ctags global
+
+FLUJO DE TRABAJO:
+  1. Abres un archivo de un proyecto con raíz (.git o .root)
+  2. gutentags detecta la raíz y, en silencio, genera .tags y GTAGS
+  3. Te pones sobre un símbolo (p. ej. una función) y pulsas <space>gs
+  4. El primer golpe puede tardar un poco (está indexando);
+     los siguientes son instantáneos.
+
+NOTA: si cambias la base de cscope a mano, borra el directorio
+  ~/.cache/vim/ctags/ y vuelve a generar; las bases se cachean ahí.
+
+
+============================================================
+12. DIFERENCIAS CLAVE CON NEOVIM
+============================================================
+
+  ┌──────────────┬────────────────────────┬─────────────────────┐
+  │              │ VIM (este fichero)     │ NEOVIM (GUIA_NVIM)  │
+  ├──────────────┼────────────────────────┼─────────────────────┤
+  │ Plugin       │ vim-plug (Plug)        │ Lazy.nvim (Lua)     │
+  │ Símbolos     │ cscope/gtags externos  │ LSP (clangd, etc.)  │
+  │ Búsqueda     │ FZF (:Rg)              │ Telescope           │
+  │ Tree de arch│ NERDTree                 │ Neo-tree            │
+  │ Sesiones     │ (no automático)        │ persistence.nvim    │
+  │ Text objects│ targets.vim             │ + treesitter-textobjects│
+  │ Status line │ airline                │ lualine + bufferline │
+  │ Terminal     │ :term manual focus     │ Navigator.nvim (tmux)│
+  └──────────────┴────────────────────────┴─────────────────────┘
+
+  REGLA DE ORO:
+    - Vim    = ligero, símbolos con ctags/gtags, sin LSP.
+      Ideal para editar rápido un archivo o proyectos enormes.
+    - Neovim = potente, con LSP (definición, refactor), Telescope.
+      Ideal para el día a día de desarrollo.
+
+
+============================================================
+💡 TRUCO: si no recuerdas un atajo, abre esta guía:
+   :edit ~/dotfiles/GUIA_VIM.txt
+============================================================

@@ -11,7 +11,7 @@ Gestor de plugins: Lazy.nvim
 - 3. ATAJO: CONFIGURACIÓN GENERAL (guardar, salir, ventanas)
 - 4. ATAJO: EXPLORACIÓN (Telescope, Neo-tree, Harpoon)
 - 5. ATAJO: GIT (Gitsigns, Lazygit)
-- 6. ATAJO: LSP (autocompletado, errores, renombrar)
+- 6. ATAJO: LSP (errores, refactor, navegación de símbolos)
 - 7. ATAJO: MODO TERMINAL
 - 8. ATAJO: EDICIÓN RÁPIDA (comentarios, mover líneas, flash)
 - 9. ATAJO: TEMAS Y VISUAL
@@ -66,9 +66,18 @@ Gestor de plugins: Lazy.nvim
 └───────────────────────────────────────────────────────────┘
 
 ┌─ GIT / HERRAMIENTAS ──────────────────────────────────────┐
-│ gitsigns         -> Muestra y navega cambios en el código │
-│ vim-tmux-navigator -> Mover entre paneles Neovim <-> tmux │
-│ Comment.nvim     -> Comentar código con gc / gcc / gb     │
+│ gitsigns          -> Muestra y navega cambios en el código│
+│ Navigator.nvim    -> Mover entre paneles Neovim <-> tmux  │
+│                   - Y entre Neovim y tmux sin fricción    │
+│ Comment.nvim      -> Comentar código con gc / gcc / gb    │
+│ persistence.nvim  -> Guarda/restaura sesiones por proyecto│
+│                   - <space>ss guarda, <space>sl restaura  │
+└───────────────────────────────────────────────────────────┘
+
+┌─ TEXTO POR SINTAXIS ──────────────────────────────────────┐
+│ nvim-treesitter-textobjects -> Objetos de texto por árbol │
+│                  sintáctico: af/if (función), ac/ic       │
+│                  (clase), as (scope)                      │
 └───────────────────────────────────────────────────────────┘
 
 
@@ -83,6 +92,10 @@ Gestor de plugins: Lazy.nvim
   <S-l>           Siguiente pestaña/buffer
   <S-h>           Pestaña/buffer anterior
   <space>bd       Cerrar pestaña actual
+  <space>bp       Volver al buffer anterior del historial
+  <space>bn       Ir al buffer siguiente del historial
+  <space>bh       Buscar en el historial de buffers (Telescope)
+  :BufOnly        Cerrar todo menos el buffer actual
   <space>sv       Dividir pantalla vertical
   <space>sh       Dividir pantalla horizontal
   <space>ld       Abrir Lazydocker (terminal interna)
@@ -93,7 +106,8 @@ Gestor de plugins: Lazy.nvim
 
 NAVEGACIÓN ENTRE VENTANAS (splits):
   <C-h>  <C-j>  <C-k>  <C-l>   Moverte a ventana izq/abajo/arriba/dcha
-  (funciona también entre Neovim y tmux)
+  (los gestiona Navigator.nvim: funcionan entre los paneles de
+   Neovim, entre Neovim y tmux, ¡y también dentro del modo terminal!)
 
 
 ============================================================
@@ -143,7 +157,7 @@ FLASH (salto ultra-rápido):
 
 
 ============================================================
-6. LSP (autocompletado, errores, refactor)
+6. LSP (errores, refactor, navegación de símbolos)
 ============================================================
 
   gd              Ir a la definición de una función/variable
@@ -159,10 +173,14 @@ SERVIDORES ACTIVOS:
   - Lua       -> lua_ls
   - Rust      -> rustaceanvim (además del LSP base)
 
+IMPORTANTE: NO hay autocompletado (sin nvim-cmp, sin IA).
+  Se usa el LSP a propósito: gd, K, <space>ca... pero los atajos
+  de completar (Ctrl+n/Esc) NO existen. A escribir a mano.
+
 CONSEJOS:
   - <space>ca sobre un error suele dar "Quick Fix" automático.
-  - En Rust, :RustLsp може tocar acciones específicas (busca :help).
-  - Ruff también formatea/ordenar importaciones si lo configuras.
+  - En Rust, :RustLsp da acciones específicas (busca :help).
+  - Ruff también formatea u ordena importaciones si lo configuras.
 
 
 ============================================================
@@ -176,7 +194,8 @@ CONSEJOS:
   DENTRO de la terminal (modo terminal):
   <Esc><Esc>       Salir de modo terminal (volver a Normal)
   <C-o>            Salir de modo terminal (alternativa)
-  <C-h>  <C-j>  <C-k>  <C-l>   Saltar a otra ventana sin salir
+  <C-h>  <C-j>  <C-k>  <C-l>   Saltar a otra ventana SIN salir de
+                    la terminal (Navigator.nvim)
 
 
 ============================================================
@@ -200,6 +219,21 @@ CONSEJOS:
   n               Siguiente coincidencia de búsqueda (centrado)
   N               Anterior coincidencia (centrado)
 
+  OBJETOS DE TEXTO POR SINTAXIS (nvim-treesitter-textobjects):
+  Se usan como los objetos clásicos: delante de d, c, y, v...
+    af / if        Añadir / interior de la FUNCIÓN   (dif, cif, yif)
+    ac / ic        Añadir / interior de la CLASE
+    as             Añadir el SCOPE del lenguaje (bloque/ámbito)
+  Ejemplos:
+    yaf      -> copia la función entera bajo el cursor
+    dif      -> borra el cuerpo de la función
+    cif      -> cambia todo el cuerpo y entras en inserción
+    vif      -> selecciona el interior de la función
+  - La d/f selección es por líneas para funciones (V) y por
+    caracteres para parámetros. Pruébalo con código C/Python.
+  - NO se usan af <S> <space>ss/si/sc/sd (selección incremental)
+    porque <space>ss ya es "Guardar sesión" (persistence.nvim).
+
 
 ============================================================
 9. TEMAS
@@ -211,6 +245,14 @@ CONSEJOS:
   - Nightfox
   - Kanagawa
   Eliges con el cursor y Enter, y se aplican al instante.
+
+  IMPORTANTE: el tema elegido con <space>ct se GUARDA automáticamente
+  (en ~/.cache/nvim/colorscheme) y se RESTAURA la próxima vez que
+  abras Neovim. No hace falta volver a elegirlo cada vez.
+
+  Si quieres volver al tema por defecto de fábrica, borra ese archivo:
+      rm ~/.cache/nvim/colorscheme
+  (o elige "tokyonight-night" otra vez con <space>ct).
 
 
 ============================================================
@@ -269,7 +311,8 @@ E. TENER TUS ARCHIVOS FAVORITOS A UN CLICK:
 
 F. USAR TMUX + NVIM JUNTOS:
    - <C-h> <C-j> <C-k> <C-l> mueven el cursor entre paneles de
-     Neovim y tmux sin romper la sesión ni los splits.
+     Neovim y tmux sin romper la sesión ni los splits, también
+     desde el modo terminal (Navigator.nvim).
 
 G. ESCRITURA DE CÓDIGO RÁPIDA:
    - s (flash) para saltar sin salir de las manos del teclado.
@@ -277,7 +320,13 @@ G. ESCRITURA DE CÓDIGO RÁPIDA:
    - K para ver la doc de la función bajo el cursor.
    - <space>ca para que el LSP arregle importaciones/fixes.
 
-H. PRESENTACIÓN / LECTURA:
+H. CAMBIAR DE TRABAJO CON EL HISTORIAL DE BUFFERS:
+   1. <space>bp / <space>bn para alternar entre los archivos que
+      estabas editando hace un momento (como el Alt-Tab del editor)
+   2. <space>bh si quieres buscar por nombre en el historial
+   3. :BufOnly para quedarte solo con el buffer actual
+
+I. PRESENTACIÓN / LECTURA:
    - render-markdown pinta los ficheros .md (listas, tablas, código)
    - <space>ct -> cambia de tema según la luz ambiental
    - <C-d>/<C-u> con cursor centrado = lectura cómoda.
