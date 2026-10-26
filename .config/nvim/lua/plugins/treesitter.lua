@@ -1,14 +1,65 @@
+-- Lenguajes con parser + queries. Se instalan con :TSInstall <lang>
+-- (o automáticamente en la primera ejecución, ver build abajo).
+local LANGS = {
+  "c", "cpp", "python", "rust", "lua", "markdown", "markdown_inline",
+  "bash", "json", "yaml", "toml", "html", "css", "javascript", "typescript",
+  "vim", "vimdoc", "sh", "make", "git_config", "git_rebase", "gitignore", "gitcommit",
+}
+
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    -- Los parsers se instalan SOLO vía ensure_installed; el build :TSUpdate
-    -- los actualiza. No hace falta autocmd: Neovim activa el resaltado solo.
-    -- Requisito: un compilador de C (gcc/clang) para compilar los parsers.
-    main = "nvim-treesitter",
-    build = ":TSUpdate",
+    -- Rama principal: la API es `install`/`uninstall` y el RESALTADO NO se
+    -- activa solo (eso lo hace Neovim con vim.treesitter.start). Por eso el
+    -- build instala lo que falte y el autocmd FileType de abajo lo enciende.
+    build = function()
+      local missing = {}
+      for _, lang in ipairs(LANGS) do
+        if not vim.uv.fs_stat(vim.fs.joinpath(vim.fn.stdpath("data"), "site", "parser", lang .. ".so")) then
+          table.insert(missing, lang)
+        end
+      end
+      if #missing > 0 then
+        pcall(function()
+          require("nvim-treesitter").install(missing):wait(300000)
+        end)
+      end
+      pcall(vim.cmd.TSUpdate)
+    end,
     config = function()
       require("nvim-treesitter").setup({
-        ensure_installed = { "c", "cpp", "python", "rust", "lua", "markdown", "markdown_inline" },
+        install_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "site"),
+      })
+
+      -- Filetypes cuyo nombre no coincide con el del parser. Sin este alias,
+      -- `get_lang("makefile")` devuelve "makefile", no existe ese parser y el
+      -- Makefile se queda sin resaltado de Treesitter.
+      vim.treesitter.language.register("make", { "makefile", "gnumakefile" })
+
+      -- El resaltado hay que encenderlo a mano en la rama principal: sin esto
+      -- solo funcionan lua y markdown (los únicos que arrancan otros plugins).
+      vim.api.nvim_create_autocmd("FileType", {
+        group = vim.api.nvim_create_augroup("TreesitterHighlight", { clear = true }),
+        callback = function(ev)
+          local lang = vim.treesitter.language.get_lang(vim.bo[ev.buf].filetype)
+          if not lang or not pcall(vim.treesitter.language.add, lang) then
+            return
+          end
+          pcall(vim.treesitter.start, ev.buf, lang)
+        end,
+      })
+
+      -- Indentación por sintaxis (marcada como experimental upstream, pero va
+      -- bien en c/cpp/python/rust/lua y respeta shiftwidth/expandtab).
+      local indent_langs = { c = true, cpp = true, python = true, rust = true, lua = true }
+      vim.api.nvim_create_autocmd("FileType", {
+        group = vim.api.nvim_create_augroup("TreesitterIndent", { clear = true }),
+        callback = function(ev)
+          local ft = vim.bo[ev.buf].filetype
+          if indent_langs[ft] then
+            vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+        end,
       })
     end,
   },

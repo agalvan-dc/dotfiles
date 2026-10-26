@@ -42,8 +42,9 @@ Gestor de plugins: Lazy.nvim
 │ kanagawa     -> Tema alternativo                          │
 │ lualine      -> Barra de estado moderna en la parte baja  │
 │ bufferline   -> Barra de pestañas con diagnóstico LSP     │
-│ render-markdown -> Previsualiza Markdown en el editor     │
-│ mini.icons   -> Iconos en archivos y UI                   │
+│ markview      -> Markdown renderizado en el propio editor  │
+│ nvim-web-devicons -> Iconos por tipo de archivo           │
+│                  (NeoTree, Telescope, bufferline, lualine)│
 └───────────────────────────────────────────────────────────┘
 
 ┌─ EXPLORACIÓN / BUSQUEDA ──────────────────────────────────┐
@@ -58,7 +59,9 @@ Gestor de plugins: Lazy.nvim
 
 ┌─ LENGUAJES / APOYO ───────────────────────────────────────┐
 │ nvim-treesitter  -> Resaltado de sintaxis avanzado        │
-│    (c, cpp, python, rust, lua, markdown)                  │
+│    (c, cpp, python, rust, lua, bash, json, yaml, html,     │
+│     css, js, ts, vim, toml, git*, markdown)                │
+│    El resaltado lo enciende la config (FileType autocmd).   │
 │ mason            -> Gestor de servidores LSP              │
 │ lspconfig        -> LSP: clangd, pyright, ruff, lua_ls    │
 │ rustaceanvim     -> Herramientas extra para Rust          │
@@ -102,6 +105,9 @@ Gestor de plugins: Lazy.nvim
   <space>lg       Abrir Lazygit (terminal interna)
   <space>n        Mostrar diagnóstico/error en ventana flotante
   <space>ct       Cambiar de tema visual (Telescope colorscheme)
+  <space>mv       Markdown: activar/desactivar el render
+  <space>ml       Markdown: render solo en la línea del cursor
+  <space>mr       Markdown: renderizar el buffer entero
   <space>9        Insertar cabecera de 42 (Stdheader)
 
 NAVEGACIÓN ENTRE VENTANAS (splits):
@@ -246,13 +252,60 @@ CONSEJOS:
   - Kanagawa
   Eliges con el cursor y Enter, y se aplican al instante.
 
-  IMPORTANTE: el tema elegido con <space>ct se GUARDA automáticamente
-  (en ~/.cache/nvim/colorscheme) y se RESTAURA la próxima vez que
-  abras Neovim. No hace falta volver a elegirlo cada vez.
+  IMPORTANTE: el tema se guarda POR CARPETA. El tema que elijas con
+  <space>ct (o con :colorscheme) se guarda automáticamente y se restaura
+  SOLO cuando vuelves a abrir esa misma ruta. Cada ruta es independiente:
 
-  Si quieres volver al tema por defecto de fábrica, borra ese archivo:
+      nvim ~/proyecto/a          -> recuerda el tema de ~/proyecto/a
+      nvim ~/proyecto/b/main.c   -> recuerda el tema de ~/proyecto/b
+      nvim (sin argumentos)      -> recuerda el tema del directorio actual
+
+  También funciona al hacer :cd dentro de la sesión (y al cargar una sesión
+  guardada de persistence.nvim): al entrar en otra ruta se aplica su tema.
+
+  Los datos están en ~/.cache/nvim/themes/<hash>.txt (2 líneas: la ruta y
+  el nombre del tema). El archivo antiguo ~/.cache/nvim/colorscheme ya no
+  se usa, puedes borrarlo:
       rm ~/.cache/nvim/colorscheme
-  (o elige "tokyonight-night" otra vez con <space>ct).
+
+  :ThemeReset     Borra el tema guardado de la ruta actual y vuelve al
+                  tema por defecto (Tokyo Night).
+
+
+============================================================
+9-bis. ICONOS Y MARKDOWN
+============================================================
+
+  ICONOS POR TIPO DE ARCHIVO (nvim-web-devicons)
+  Salen en: NeoTree (<space>e), Telescope (<space>ff), barra de pestañas,
+  barra de estado (lualine) y en las listas de markview.
+
+  Necesitan una Nerd Font en la TERMINAL. Ya está instalada en el sistema:
+      JetBrainsMono Nerd Font  (~/.local/share/fonts/JetBrainsMonoNerdFont)
+  Si ves cajitas squares en vez de iconos, cambia la fuente de tu
+  terminal a "JetBrainsMono Nerd Font" (preferencias de la terminal).
+
+  MARKDOWN RENDERIZADO (markview)
+  - Los .md se ven ya renderizados: títulos grandes, listas con iconos,
+    checkboxes, tablas y bloques de código.
+  - Archivos de texto SIN extensión también se renderizan porque se
+    marcan como markdown: README, README-ES, LICENSE, CHANGELOG, TODO,
+    NOTAS, CODEOWNERS, NOTICE, CONTRIBUTING...
+  - Archivos sin extensión con tipo conocido se abren con su tipo real
+    (Makefile -> make, .env -> dotenv, .gitignore -> gitignore,
+    Dockerfile -> docker, .bashrc -> sh...) y por tanto con icono propio.
+  - Un script sin extensión se detecta por su shebang (#!/bin/bash -> sh,
+    #!/usr/bin/env python3 -> python, node -> javascript...).
+  - Un archivo binario no se toca nunca.
+
+  <space>mv       Activar / desactivar el render
+  <space>ml       Render solo en la línea bajo el cursor (lectura)
+  <space>mr       Renderizar el buffer entero
+  <space>mc       Quitar el render del buffer
+
+  Configuración: lua/plugins/markdown.lua (markview)
+                 lua/plugins/icons.lua   (devicons)
+                 lua/config/filetypes.lua (archivos sin extensión)
 
 
 ============================================================
@@ -327,7 +380,11 @@ H. CAMBIAR DE TRABAJO CON EL HISTORIAL DE BUFFERS:
    3. :BufOnly para quedarte solo con el buffer actual
 
 I. PRESENTACIÓN / LECTURA:
-   - render-markdown pinta los ficheros .md (listas, tablas, código)
+   - markview pinta los ficheros .md (títulos, listas, checkboxes,
+     bloques de código) y también los archivos de texto sin
+     extensión (README, LICENSE, NOTAS, CHANGELOG...).
+   - <space>mv quita el render si lo que quieres es el markdown en
+     crudo; <space>ml lo deja solo en la línea bajo el cursor.
    - <space>ct -> cambia de tema según la luz ambiental
    - <C-d>/<C-u> con cursor centrado = lectura cómoda.
 
@@ -340,7 +397,8 @@ COMANDOS ÚTILES DEL GESTOR DE PLUGINS (Lazy.nvim)
   :Lazy sync     Actualizar plugins (a mano)
   :Lazy update   Instalar nuevas versiones
   :Lazy check    Ver qué puede actualizarse
-  :TSUpdate      Actualizar parsers de Treesitter
+  :TSUpdate      Actualizar/compilar los parsers de Treesitter
+  :TSInstall lua Instalar un parser que falte (ej: bash)
   :Mason         Gestionar instalación de LSPs
   :checkhealth   Diagnóstico de salud de la config
 

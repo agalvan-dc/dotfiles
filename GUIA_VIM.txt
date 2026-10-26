@@ -15,10 +15,11 @@ Versión: Vim 9.0 (Vi IMproved)
 - 6. ATAJO: SÍMBOLOS C/C++ (cscope/gtags, único de Vim)
 - 7. ATAJO: EDICIÓN RÁPIDA (comentarios, surround, multi-cursor)
 - 8. MODO VISUAL
-- 9. TEMA Y BARRA DE ESTADO
-- 10. CÓMO INSTALAR/ACTUALIZAR PLUGINS
-- 11. DEPENDENCIAS EXTERNAS (universal-ctags y global) y CÓMO SE GENERAN LOS SÍMBOLOS
-- 12. DIFERENCIAS CLAVE CON NEOVIM
+- 9. TEMA POR CARPETA (se recuerda al reabrir)
+- 10. ARCHIVOS SIN EXTENSIÓN, MARKDOWN E ICONOS
+- 11. CÓMO INSTALAR/ACTUALIZAR PLUGINS
+- 12. DEPENDENCIAS EXTERNAS (universal-ctags y global) y CÓMO SE GENERAN LOS SÍMBOLOS
+- 13. DIFERENCIAS CLAVE CON NEOVIM
 
 
 ============================================================
@@ -40,10 +41,16 @@ Versión: Vim 9.0 (Vi IMproved)
 ============================================================
 
 ┌─ TEMA ────────────────────────────────────────────────────┐
-│ nordtheme/vim      -> Tema Nordic                         │
-│ vim-airline        -> Barra de estado                              
-│ vim-airline-themes -> Temas para airline                  
-│ vim-devicons       -> Iconos en la interfaz               
+│ nordtheme/vim      -> Tema Nordic (colorscheme nord)       │
+│ menisadi/kanagawa  -> Kanagawa (tema por defecto)         │
+│ shrikecode/kyotonight -> Tokyo Night + Nord                │
+│ vim-airline        -> Barra de estado                      │
+│ vim-airline-themes -> Temas para airline                   │
+│ vim-devicons       -> Iconos de tipo de archivo            │
+└───────────────────────────────────────────────────────────┘
+
+┌─ TEXTO / DOCUMENTACIÓN ────────────────────────────────────┐
+│ vim-markdown       -> Renderiza el markdown dentro de Vim  │
 └───────────────────────────────────────────────────────────┘
 
 ┌─ NAVEGACIÓN / ARCHIVOS ───────────────────────────────────┐
@@ -222,18 +229,92 @@ QUÉ NECESITAS INSTALADO (ver sección 11):
 
 
 ============================================================
-9. TEMA Y BARRA DE ESTADO
+9. TEMA POR CARPETA (se recuerda al reabrir)
 ============================================================
 
-  - Tema: Nordic (nord), con airline en el mismo estilo
-  - airline muestra: modo, rama git, archivo, errores, línea/col
-  - Tabs en la parte superior (airline-tabline)
-  - Para cambiar de tema: se edita la línea "colorscheme nord"
-    en el .vimrc (no hay selector dinámico como en Neovim)
+  Cada CARPETA guarda su propio tema. Al abrir un proyecto se
+  recupera el último que usaste ahí; al cambiar de tema se
+  guarda solo para esa carpeta.
+
+  :Theme <nombre>   Cambiar de tema (con autocompletado)
+  :Themes           Lista los temas disponibles
+  :ThemeReset       Olvidar el tema de esta carpeta
+                    (vuelve al de por defecto: kanagawa)
+
+  Se guardan en:  ~/.cache/vim/themes/<hash>.txt
+  (línea 1 = ruta, línea 2 = tema). También con :cd: cada
+  carpeta conserva su tema mientras te mueves en la sesión.
+
+  Temas instalados:
+    kanagawa     (por defecto)
+    kyotonight   (Tokyo Night + Nord)
+    nord         (Nord)
+
+  Airline se adapta solo al tema (hybrid / nord_minimal) y
+  muestra: modo, rama git, archivo, errores, línea/columna.
+  Las pestañas van arriba (airline-tabline).
+
+  OJO (detalle de Vim): :hi clear borra g:colors_name, y hay
+  colorschemes que lo ponen ANTES de ese "hi clear" (kanagawa
+  entre ellos). Por eso la config no se fía de g:colors_name y
+  guarda ella el nombre del tema aplicado.
 
 
 ============================================================
-10. GESTIÓN DE PLUGINS (vim-plug)
+10. ARCHIVOS SIN EXTENSIÓN, MARKDOWN E ICONOS
+============================================================
+
+  Los archivos que Vim NO reconoce por sí solo se clasifican
+  solos, para que tengan resaltado e icono:
+
+  ┌─ NOMBRE CONOCIDO ───────────────────────────────────────┐
+  │ Makefile, justfile      -> makefile                     │
+  │ Dockerfile              -> docker                       │
+  │ .bashrc, .zshrc, .envrc -> sh / zsh                     │
+  │ .gitignore, .gitattributes, .editorconfig -> gitignore  │
+  │ Rakefile, Gemfile       -> ruby                         │
+  └───────────────────────────────────────────────────────────┘
+
+  ┌─ DOCUMENTACIÓN -> MARKDOWN ─────────────────────────────┐
+  │ README, README-ES, LICENSE, LICENCE, COPYING, CHANGELOG │
+  │ CHANGES, NEWS, TODO, NOTAS, CONTRIBUTING, SECURITY,     │
+  │ INSTALL, USAGE, AUTHORS, FAQ, NOTICE, CODEOWNERS...     │
+  │ (también con sufijo: LICENSE-APACHE, CHANGELOG_2...)   │
+  └───────────────────────────────────────────────────────────┘
+
+  ┌─ SIN EXTENSIÓN NINGUNA -> MARKDOWN ─────────────────────┐
+  │ Un archivo llamado "hola", "notas-v1", "ideas"...        │
+  │ se abre como markdown y se renderiza entero.            │
+  └───────────────────────────────────────────────────────────┘
+
+  ┌─ SIN EXTENSIÓN PERO CON SHEBANG -> SU INTÉRPRETE ───────┐
+  │ #!/bin/bash, #!/usr/bin/env bash -> sh                   │
+  │ #!/usr/bin/env python3    -> python                     │
+  │ #!/usr/bin/env node       -> javascript                 │
+  └───────────────────────────────────────────────────────────┘
+
+  ┌─ SOLO PUNTO INICIAL: EL PUNTO ES LA EXTENSIÓN ──────────┐
+  │ .c  -> c        .py -> python    .json -> json           │
+  │ .js -> javascript  .sh -> sh     .toml -> toml          │
+  │ (para que tengan su icono y su resaltado)                │
+  └───────────────────────────────────────────────────────────┘
+
+  Los binarios NO se tocan: si el archivo tiene bytes NUL se
+  deja sin tipo, tal cual.
+
+  El markdown lo renderiza vim-markdown (títulos, negritas,
+  listas y bloques de código). Como el buffer queda como
+  markdown, funciona también :setfiletype markdown a mano.
+
+  ICONOS: vim-devicons pone el icono según el tipo de archivo
+  (fzf, NERDTree, barra de pestañas de airline). Requiere una
+  Nerd Font en la terminal: JetBrainsMono Nerd Font ya está
+  instalada en el sistema; solo hay que elegirla en el perfil
+  del terminal.
+
+
+============================================================
+11. GESTIÓN DE PLUGINS (vim-plug)
 ============================================================
 
   :PlugInstall     Instalar los plugins del .vimrc
@@ -246,7 +327,7 @@ QUÉ NECESITAS INSTALADO (ver sección 11):
 
 
 ============================================================
-11. DEPENDENCIAS EXTERNAS Y GENERACIÓN DE SÍMBOLOS
+12. DEPENDENCIAS EXTERNAS Y GENERACIÓN DE SÍMBOLOS
 ============================================================
 
 Instalar una vez (gestor de paquetes del SO):
@@ -274,7 +355,7 @@ NOTA: si cambias la base de cscope a mano, borra el directorio
 
 
 ============================================================
-12. DIFERENCIAS CLAVE CON NEOVIM
+13. DIFERENCIAS CLAVE CON NEOVIM
 ============================================================
 
   ┌──────────────┬────────────────────────┬─────────────────────┐

@@ -1,5 +1,7 @@
 return {
-  -- Formateo al guardar (conform.nvim)
+  -- Formateo manual (conform.nvim). Sin format_on_save para no tocar
+  -- el código: la norma 42 exige formato propio y no queremos que
+  -- clang-format/ruff/etc. lo modifiquen al guardar.
   {
     "stevearc/conform.nvim",
     event = { "BufWritePre" },
@@ -18,7 +20,7 @@ return {
         markdown = { "prettierd", "prettier", stop_after_first = true },
         json     = { "prettierd", "prettier", stop_after_first = true },
       },
-      format_on_save = { timeout_ms = 2000, lsp_format = "fallback" },
+      format_on_save = nil,
     },
   },
 }

@@ -23,6 +23,7 @@ vim.g.maplocalleader = " "
 
 -- Cargar los módulos de configuración antes de lazy.nvim
 require("config.options")
+require("config.filetypes").setup()
 require("config.keymaps")
 require("config.commands")
 
